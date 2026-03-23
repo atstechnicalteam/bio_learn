@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/constants/app_constants.dart';
+import '../../../learning/presentation/screens/my_learning_screen.dart';
+import '../../../quiz/presentation/screens/quiz_screen.dart';
 
 class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
@@ -12,7 +15,6 @@ class NotificationsScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(AppSizes.paddingMD),
         children: [
-          // Today's reminder card
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -28,7 +30,7 @@ class NotificationsScreen extends StatelessWidget {
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: AppColors.primaryLight.withOpacity(0.5),
+                      color: AppColors.primaryLight.withValues(alpha: 0.5),
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -46,7 +48,7 @@ class NotificationsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     const Text(
-                      'Complete your daily practice and maintain your streak.',
+                      'Complete your daily practice and continue your learning progress.',
                       style: TextStyle(color: Colors.white70, fontSize: 13),
                     ),
                     const SizedBox(height: 14),
@@ -54,7 +56,9 @@ class NotificationsScreen extends StatelessWidget {
                       onTap: () {},
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 10),
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(AppSizes.radiusSM),
@@ -75,7 +79,7 @@ class NotificationsScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          _SectionLabel(label: 'Today'),
+          const _SectionLabel(label: 'Today'),
           _NotificationCard(
             date: '18.03.2026',
             time: '03:12 PM',
@@ -83,9 +87,11 @@ class NotificationsScreen extends StatelessWidget {
             iconBg: AppColors.accentLight,
             iconColor: AppColors.primary,
             title: 'Continue your Medical Coding Internship',
-            subtitle: 'You are on Module 2 – ICD-10 Basics',
+            subtitle: 'You are on Module 2 | ICD-10 Basics',
             actionText: 'Resume Learning',
-            onAction: () {},
+            onAction: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const MyLearningScreen()),
+            ),
           ),
           _NotificationCard(
             date: '17.03.2026',
@@ -96,23 +102,14 @@ class NotificationsScreen extends StatelessWidget {
             title: 'Module 1 Quiz Pending',
             subtitle: 'Complete the quiz to unlock next module',
             actionText: 'Take Quiz',
-            onAction: () {},
+            onAction: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const QuizScreen(moduleIndex: 0),
+              ),
+            ),
           ),
           const SizedBox(height: 16),
-          _SectionLabel(label: 'Yesterday'),
-          _NotificationCard(
-            date: '17.03.2026',
-            time: '03:12 PM',
-            icon: Icons.local_fire_department_outlined,
-            iconBg: const Color(0xFFFFF3E0),
-            iconColor: Colors.deepOrange,
-            title: '🔥 3 Day Streak Achieved',
-            subtitle: 'Keep practicing daily',
-            actionText: null,
-            onAction: null,
-          ),
-          const SizedBox(height: 16),
-          _SectionLabel(label: 'Older'),
+          const _SectionLabel(label: 'Older'),
           _NotificationCard(
             date: '01.03.2026',
             time: '03:12 PM',
@@ -131,33 +128,27 @@ class NotificationsScreen extends StatelessWidget {
 }
 
 class _SectionLabel extends StatelessWidget {
-  final String label;
   const _SectionLabel({required this.label});
+
+  final String label;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Text(label,
-          style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary)),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w700,
+          color: AppColors.textPrimary,
+        ),
+      ),
     );
   }
 }
 
 class _NotificationCard extends StatelessWidget {
-  final String date;
-  final String time;
-  final IconData icon;
-  final Color iconBg;
-  final Color iconColor;
-  final String title;
-  final String subtitle;
-  final String? actionText;
-  final VoidCallback? onAction;
-
   const _NotificationCard({
     required this.date,
     required this.time,
@@ -169,6 +160,16 @@ class _NotificationCard extends StatelessWidget {
     required this.actionText,
     required this.onAction,
   });
+
+  final String date;
+  final String time;
+  final IconData icon;
+  final Color iconBg;
+  final Color iconColor;
+  final String title;
+  final String subtitle;
+  final String? actionText;
+  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
@@ -186,12 +187,14 @@ class _NotificationCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(date,
-                  style: const TextStyle(
-                      fontSize: 11, color: AppColors.textHint)),
-              Text(time,
-                  style: const TextStyle(
-                      fontSize: 11, color: AppColors.textHint)),
+              Text(
+                date,
+                style: const TextStyle(fontSize: 11, color: AppColors.textHint),
+              ),
+              Text(
+                time,
+                style: const TextStyle(fontSize: 11, color: AppColors.textHint),
+              ),
             ],
           ),
           const SizedBox(height: 10),
@@ -212,46 +215,52 @@ class _NotificationCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title,
-                        style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary)),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
                     const SizedBox(height: 2),
-                    Text(subtitle,
-                        style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary)),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    if (actionText != null && onAction != null) ...[
+                      const SizedBox(height: 10),
+                      GestureDetector(
+                        onTap: onAction,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.cardBackground,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppColors.primary),
+                          ),
+                          child: Text(
+                            actionText!,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
             ],
           ),
-          if (actionText != null) ...[
-            const SizedBox(height: 12),
-            GestureDetector(
-              onTap: onAction,
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(AppSizes.radiusSM),
-                  border: Border.all(color: AppColors.primary),
-                ),
-                child: Center(
-                  child: Text(
-                    actionText!,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
         ],
       ),
     );

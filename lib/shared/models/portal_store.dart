@@ -40,6 +40,8 @@ class ProgramSelection {
   final double price;
   final double? originalPrice;
 
+  bool get isCourse => id.startsWith('course-');
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -58,41 +60,48 @@ class ProgramSelection {
 class PortalState {
   const PortalState({
     required this.wishlist,
-    required this.cartItem,
-    required this.enrolledProgram,
+    required this.cartItems,
+    required this.enrolledPrograms,
   });
 
   factory PortalState.initial() {
     return const PortalState(
       wishlist: <ProgramSelection>[],
-      cartItem: null,
-      enrolledProgram: null,
+      cartItems: <ProgramSelection>[],
+      enrolledPrograms: <ProgramSelection>[],
     );
   }
 
   final List<ProgramSelection> wishlist;
-  final ProgramSelection? cartItem;
-  final ProgramSelection? enrolledProgram;
+  final List<ProgramSelection> cartItems;
+  final List<ProgramSelection> enrolledPrograms;
 
   bool isWishlisted(String id) => wishlist.any((item) => item.id == id);
 
   bool isInCart(String id, String priceOptionId) {
-    return cartItem?.id == id && cartItem?.priceOptionId == priceOptionId;
+    return cartItems.any(
+      (item) => item.id == id && item.priceOptionId == priceOptionId,
+    );
   }
+
+  int get cartCount => cartItems.length;
+
+  ProgramSelection? get latestEnrolledProgram =>
+      enrolledPrograms.isEmpty ? null : enrolledPrograms.last;
 
   PortalState copyWith({
     List<ProgramSelection>? wishlist,
-    ProgramSelection? cartItem,
+    List<ProgramSelection>? cartItems,
     bool clearCart = false,
-    ProgramSelection? enrolledProgram,
-    bool clearEnrolledProgram = false,
+    List<ProgramSelection>? enrolledPrograms,
+    bool clearEnrolledPrograms = false,
   }) {
     return PortalState(
       wishlist: wishlist ?? this.wishlist,
-      cartItem: clearCart ? null : cartItem ?? this.cartItem,
-      enrolledProgram: clearEnrolledProgram
-          ? null
-          : enrolledProgram ?? this.enrolledProgram,
+      cartItems: clearCart ? const <ProgramSelection>[] : cartItems ?? this.cartItems,
+      enrolledPrograms: clearEnrolledPrograms
+          ? const <ProgramSelection>[]
+          : enrolledPrograms ?? this.enrolledPrograms,
     );
   }
 }
@@ -113,13 +122,15 @@ class PortalStore {
   bool _initialized = false;
 
   Future<void> ensureInitialized() async {
-    if (_initialized) return;
+    if (_initialized) {
+      return;
+    }
 
     _preferences = await SharedPreferences.getInstance();
     state.value = PortalState(
-      wishlist: _readList(_wishlistKey),
-      cartItem: _readItem(_cartKey),
-      enrolledProgram: _readItem(_enrolledKey),
+      wishlist: _readProgramList(_wishlistKey),
+      cartItems: _readProgramList(_cartKey),
+      enrolledPrograms: _readProgramList(_enrolledKey),
     );
     _initialized = true;
   }
@@ -144,7 +155,22 @@ class PortalStore {
 
   Future<void> addToCart(ProgramSelection program) async {
     await ensureInitialized();
-    await _save(state.value.copyWith(cartItem: program));
+
+    final updatedCart = [
+      ...state.value.cartItems.where((item) => item.id != program.id),
+      program,
+    ];
+
+    await _save(state.value.copyWith(cartItems: updatedCart));
+  }
+
+  Future<void> removeFromCart(String id) async {
+    await ensureInitialized();
+    await _save(
+      state.value.copyWith(
+        cartItems: state.value.cartItems.where((item) => item.id != id).toList(),
+      ),
+    );
   }
 
   Future<void> clearCart() async {
@@ -152,38 +178,57 @@ class PortalStore {
     await _save(state.value.copyWith(clearCart: true));
   }
 
-  Future<void> completePayment(ProgramSelection program) async {
+  Future<void> completePayment(List<ProgramSelection> programs) async {
     await ensureInitialized();
+    if (programs.isEmpty) {
+      return;
+    }
+
+    final purchasedIds = programs.map((program) => program.id).toSet();
+    final remainingCart = state.value.cartItems
+        .where((item) => !purchasedIds.contains(item.id))
+        .toList();
+
+    final mergedEnrolled = [
+      ...state.value.enrolledPrograms.where(
+        (item) => !purchasedIds.contains(item.id),
+      ),
+      ...programs,
+    ];
+
     await _save(
       state.value.copyWith(
-        cartItem: null,
-        clearCart: true,
-        enrolledProgram: program,
+        cartItems: remainingCart,
+        enrolledPrograms: mergedEnrolled,
       ),
     );
   }
 
-  List<ProgramSelection> _readList(String key) {
+  List<ProgramSelection> _readProgramList(String key) {
     final rawValue = _preferences?.getString(key);
-    if (rawValue == null || rawValue.isEmpty) return const <ProgramSelection>[];
+    if (rawValue == null || rawValue.isEmpty) {
+      return const <ProgramSelection>[];
+    }
 
     final decoded = jsonDecode(rawValue);
-    if (decoded is! List) return const <ProgramSelection>[];
+    if (decoded is List) {
+      return decoded
+          .whereType<Map>()
+          .map(
+            (item) => ProgramSelection.fromJson(
+              Map<String, dynamic>.from(item),
+            ),
+          )
+          .toList();
+    }
 
-    return decoded
-        .whereType<Map>()
-        .map((item) => ProgramSelection.fromJson(Map<String, dynamic>.from(item)))
-        .toList();
-  }
+    if (decoded is Map) {
+      return [
+        ProgramSelection.fromJson(Map<String, dynamic>.from(decoded)),
+      ];
+    }
 
-  ProgramSelection? _readItem(String key) {
-    final rawValue = _preferences?.getString(key);
-    if (rawValue == null || rawValue.isEmpty) return null;
-
-    final decoded = jsonDecode(rawValue);
-    if (decoded is! Map) return null;
-
-    return ProgramSelection.fromJson(Map<String, dynamic>.from(decoded));
+    return const <ProgramSelection>[];
   }
 
   Future<void> _save(PortalState newState) async {
@@ -192,23 +237,15 @@ class PortalStore {
       _wishlistKey,
       jsonEncode(newState.wishlist.map((item) => item.toJson()).toList()),
     );
-
-    if (newState.cartItem == null) {
-      await _preferences!.remove(_cartKey);
-    } else {
-      await _preferences!.setString(
-        _cartKey,
-        jsonEncode(newState.cartItem!.toJson()),
-      );
-    }
-
-    if (newState.enrolledProgram == null) {
-      await _preferences!.remove(_enrolledKey);
-    } else {
-      await _preferences!.setString(
-        _enrolledKey,
-        jsonEncode(newState.enrolledProgram!.toJson()),
-      );
-    }
+    await _preferences!.setString(
+      _cartKey,
+      jsonEncode(newState.cartItems.map((item) => item.toJson()).toList()),
+    );
+    await _preferences!.setString(
+      _enrolledKey,
+      jsonEncode(
+        newState.enrolledPrograms.map((item) => item.toJson()).toList(),
+      ),
+    );
   }
 }

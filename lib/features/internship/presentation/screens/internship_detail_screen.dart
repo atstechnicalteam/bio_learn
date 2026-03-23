@@ -114,8 +114,14 @@ class _DetailContentState extends State<_DetailContent> {
     await _portalStore.addToCart(program);
     if (!mounted) return;
     setState(() {});
+    final courseCount = _portalStore.state.value.cartItems
+        .where((item) => item.isCourse)
+        .length;
+    final message = program.isCourse && courseCount >= 2
+        ? 'Added to cart. Rs.500 2-course offer unlocked.'
+        : 'Added to cart.';
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Added to cart.')),
+      SnackBar(content: Text(message)),
     );
   }
 
@@ -164,7 +170,7 @@ class _DetailContentState extends State<_DetailContent> {
                       ? Image.network(
                           widget.internship.imageUrl,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) =>
+                          errorBuilder: (context, error, stackTrace) =>
                               Container(color: AppColors.primary),
                         )
                       : Container(color: AppColors.primary),

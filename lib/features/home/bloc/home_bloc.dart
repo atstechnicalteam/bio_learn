@@ -2,6 +2,7 @@ import 'package:bio_xplora_portal/features/home/data/models/home_models.dart';
 import 'package:bio_xplora_portal/features/home/data/repositories/home_repository.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../shared/models/user_session_store.dart';
 
 
 // ─── Events ───────────────────────────────────────────────────────────────────
@@ -106,6 +107,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       HomeDataLoaded event, Emitter<HomeState> emit) async {
     emit(HomeLoading());
     try {
+      await UserSessionStore.instance.ensureInitialized();
       final results = await Future.wait([
         event.tab == 'internships'
             ? _homeRepository.getInternships()
@@ -119,7 +121,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         careerPaths: results[1] as List<CareerPathModel>,
         continueLearning: results[2] as ContinueLearningModel?,
         activeTab: event.tab,
-        userName: 'Arunkumar',
+        userName: UserSessionStore.instance.state.value.displayName,
       ));
     } catch (e) {
       emit(HomeError(message: e.toString().replaceAll('ApiException: ', '')));
@@ -130,7 +132,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       HomeTabChanged event, Emitter<HomeState> emit) async {
     if (state is HomeLoaded) {
       final current = state as HomeLoaded;
-      emit(HomeLoading());
       try {
         final items = event.tab == 'internships'
             ? await _homeRepository.getInternships()
@@ -145,7 +146,14 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   Future<void> _onHomeSearchChanged(
       HomeSearchChanged event, Emitter<HomeState> emit) async {
     if (event.query.isEmpty) {
-      add(HomeDataLoaded(tab: event.type));
+      if (state is HomeLoaded) {
+        try {
+          final items = event.type == 'courses'
+              ? await _homeRepository.getCourses()
+              : await _homeRepository.getInternships();
+          emit((state as HomeLoaded).copyWith(items: items, activeTab: event.type));
+        } catch (_) {}
+      }
       return;
     }
     try {

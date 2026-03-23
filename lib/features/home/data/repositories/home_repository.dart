@@ -120,8 +120,8 @@ List<InternshipModel> _demoInternships() {
   return [
     InternshipModel(
       id: 'internship-medical-coding',
-      title: 'Medical Coding Internship',
-      description: 'Hands-on exposure to coding workflows and healthcare records.',
+      title: 'Medical Coding',
+      description: 'Learn ICD-10 coding and healthcare documentation',
       imageUrl: '',
       duration: '8 Weeks',
       rating: 4.8,
@@ -140,41 +140,20 @@ List<InternshipModel> _demoInternships() {
       ],
     ),
     InternshipModel(
-      id: 'internship-clinical-research',
-      title: 'Clinical Research Internship',
-      description: 'Understand protocols, trial coordination, and compliance basics.',
+      id: 'internship-bioinformatics',
+      title: 'Bioinformatics',
+      description: 'Analyze biological data and genome sequences',
       imageUrl: '',
       duration: '6 Weeks',
-      rating: 4.7,
-      studentsEnrolled: 860,
-      level: 'Intermediate',
-      priceOptions: [
-        PriceOption(id: 'price-cr-2w', duration: '2 Weeks', price: 899),
-        PriceOption(id: 'price-cr-4w', duration: '4 Weeks', price: 1799),
-        PriceOption(
-          id: 'price-cr-6w',
-          duration: '6 Weeks',
-          price: 2499,
-          originalPrice: 3199,
-          isMostPopular: true,
-        ),
-      ],
-    ),
-    InternshipModel(
-      id: 'internship-bioinformatics',
-      title: 'Bioinformatics Internship',
-      description: 'Work with sequence analysis, datasets, and genomics tools.',
-      imageUrl: '',
-      duration: '10 Weeks',
       rating: 4.9,
       studentsEnrolled: 640,
-      level: 'Advanced',
+      level: 'Beginner',
       priceOptions: [
         PriceOption(id: 'price-bio-2w', duration: '2 Weeks', price: 1099),
         PriceOption(id: 'price-bio-4w', duration: '4 Weeks', price: 2099),
         PriceOption(
-          id: 'price-bio-10w',
-          duration: '10 Weeks',
+          id: 'price-bio-6w',
+          duration: '6 Weeks',
           price: 3499,
           originalPrice: 4499,
           isMostPopular: true,
@@ -187,19 +166,19 @@ List<InternshipModel> _demoInternships() {
 List<InternshipModel> _demoCourses() {
   return [
     InternshipModel(
-      id: 'course-pharmacovigilance',
-      title: 'Pharmacovigilance Course',
-      description: 'Learn adverse event reporting, drug safety, and case processing.',
+      id: 'course-medical-coding',
+      title: 'Medical Coding',
+      description: 'Learn ICD-10 coding and healthcare documentation',
       imageUrl: '',
       duration: '5 Weeks',
       rating: 4.6,
       studentsEnrolled: 930,
       level: 'Beginner',
       priceOptions: [
-        PriceOption(id: 'price-pv-1m', duration: '1 Month', price: 1499),
-        PriceOption(id: 'price-pv-2m', duration: '2 Months', price: 2299),
+        PriceOption(id: 'price-course-mc-1m', duration: '1 Month', price: 1499),
+        PriceOption(id: 'price-course-mc-2m', duration: '2 Months', price: 2299),
         PriceOption(
-          id: 'price-pv-3m',
+          id: 'price-course-mc-3m',
           duration: '3 Months',
           price: 2999,
           originalPrice: 3599,
@@ -208,19 +187,19 @@ List<InternshipModel> _demoCourses() {
       ],
     ),
     InternshipModel(
-      id: 'course-medical-writing',
-      title: 'Medical Writing Course',
-      description: 'Build strong scientific writing skills for reports and publications.',
+      id: 'course-bioinformatics',
+      title: 'Bioinformatics',
+      description: 'Analyze biological data and genome sequences',
       imageUrl: '',
       duration: '4 Weeks',
       rating: 4.5,
       studentsEnrolled: 520,
       level: 'Beginner',
       priceOptions: [
-        PriceOption(id: 'price-mw-1m', duration: '1 Month', price: 1299),
-        PriceOption(id: 'price-mw-2m', duration: '2 Months', price: 1999),
+        PriceOption(id: 'price-course-bio-1m', duration: '1 Month', price: 1299),
+        PriceOption(id: 'price-course-bio-2m', duration: '2 Months', price: 1999),
         PriceOption(
-          id: 'price-mw-3m',
+          id: 'price-course-bio-3m',
           duration: '3 Months',
           price: 2599,
           originalPrice: 3199,
@@ -235,8 +214,8 @@ List<CareerPathModel> _demoCareerPaths() {
   return [
     CareerPathModel(
       id: 'career-medical-coder',
-      title: 'Medical Coder',
-      description: 'Translate clinical information into standardized codes for billing and analysis.',
+      title: 'Medical Coding Specialist',
+      description: 'Work in hospitals and healthcare companies handling critical data.',
       iconUrl: '',
       isHighDemand: true,
       whatYouWillDo: [
@@ -254,9 +233,9 @@ List<CareerPathModel> _demoCareerPaths() {
       salaryRange: '3.0 LPA - 6.5 LPA',
     ),
     CareerPathModel(
-      id: 'career-clinical-research',
-      title: 'Clinical Research Associate',
-      description: 'Coordinate study execution, documentation, and regulatory compliance.',
+      id: 'career-bioinformatics',
+      title: 'Bioinformatics Analyst',
+      description: 'Work with biological computation and genome analysis workflows.',
       iconUrl: '',
       isHighDemand: true,
       whatYouWillDo: [
@@ -279,10 +258,10 @@ List<CareerPathModel> _demoCareerPaths() {
 ContinueLearningModel _demoContinueLearning() {
   return ContinueLearningModel(
     enrollmentId: 'demo-enrollment-1',
-    courseId: 'course-pharmacovigilance',
-    courseTitle: 'Pharmacovigilance Course',
-    currentModule: 'Module 2: Case Processing Basics',
-    progress: 0.35,
+    courseId: 'course-bioinformatics-masterclass',
+    courseTitle: 'Bioinformatics Complete Masterclass',
+    currentModule: 'Module 4: DNA Sequence Analysis',
+    progress: 0.65,
   );
 }
 

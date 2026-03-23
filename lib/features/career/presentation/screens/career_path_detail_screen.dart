@@ -3,6 +3,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../shared/widgets/shared_widgets.dart';
 import '../../../home/data/models/home_models.dart';
 import '../../../home/data/repositories/home_repository.dart';
+import '../../../internship/presentation/screens/internship_detail_screen.dart';
 
 class CareerPathDetailScreen extends StatefulWidget {
   final String careerId;
@@ -16,6 +17,26 @@ class _CareerPathDetailScreenState extends State<CareerPathDetailScreen> {
   bool _isLoading = true;
   CareerPathModel? _career;
   String? _error;
+
+  String _linkedProgramId(String careerId) {
+    switch (careerId) {
+      case 'career-medical-coder':
+        return 'course-medical-coding';
+      case 'career-bioinformatics':
+        return 'course-bioinformatics';
+      default:
+        return 'course-medical-coding';
+    }
+  }
+
+  void _openPathCourse(CareerPathModel career) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) =>
+            InternshipDetailScreen(internshipId: _linkedProgramId(career.id)),
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -168,7 +189,7 @@ class _CareerPathDetailScreenState extends State<CareerPathDetailScreen> {
                           Container(
                             width: 2,
                             height: 40,
-                            color: AppColors.success.withOpacity(0.3),
+                            color: AppColors.success.withValues(alpha: 0.3),
                           ),
                       ],
                     ),
@@ -266,7 +287,7 @@ class _CareerPathDetailScreenState extends State<CareerPathDetailScreen> {
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 28),
         child: AppPrimaryButton(
           text: 'Start This Path',
-          onPressed: () {},
+          onPressed: () => _openPathCourse(career),
         ),
       ),
     );

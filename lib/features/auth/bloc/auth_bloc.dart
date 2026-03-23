@@ -3,6 +3,7 @@ import 'package:bio_xplora_portal/features/auth/data/repositories/auth_repositor
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../shared/models/shared_models.dart';
+import '../../../../shared/models/user_session_store.dart';
 
 
 // ─── Events ───────────────────────────────────────────────────────────────────
@@ -162,11 +163,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final user = await _authRepository.login(
         LoginRequestModel(mobile: event.mobile, password: event.password),
       );
-      emit(LoginSuccess(user: user));
+      final session = await UserSessionStore.instance.saveUser(user);
+      emit(LoginSuccess(user: _userWithSession(user, session)));
     } catch (e) {
       final message = _errorMessage(e);
       if (_isOfflineError(message)) {
-        emit(LoginSuccess(user: _buildLocalUser(mobile: event.mobile)));
+        final localUser = await _buildLocalUser(mobile: event.mobile);
+        emit(LoginSuccess(user: localUser));
         return;
       }
       emit(AuthError(message: message));
@@ -176,6 +179,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onRegisterSubmitted(
     RegisterSubmitted event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
+    await UserSessionStore.instance.savePendingRegistration(
+      fullName: event.fullName,
+      email: event.email,
+      mobile: event.mobile,
+    );
     try {
       await _authRepository.register(
         RegisterRequestModel(
@@ -215,13 +223,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     OtpVerified event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     if (event.otp == '1234') {
+      final session = await UserSessionStore.instance.saveUser(
+        UserModel(
+          id: 'local-otp-user',
+          fullName: '',
+          email: '',
+          mobile: event.mobile,
+          token: 'local-otp-token',
+        ),
+      );
       emit(
         OtpVerifiedSuccess(
           user: UserModel(
             id: 'local-otp-user',
-            fullName: '',
-            email: '',
-            mobile: event.mobile,
+            fullName: session.fullName,
+            email: session.email,
+            mobile: session.mobile,
             token: 'local-otp-token',
           ),
         ),
@@ -265,6 +282,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         return;
       }
     }
+    await UserSessionStore.instance.updateStudentInfo(
+      collegeName: event.collegeName,
+      department: event.department,
+      yearOfStudy: event.yearOfStudy,
+      programType: event.programType,
+    );
     emit(StudentInfoSuccess());
   }
 
@@ -273,8 +296,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       await _authRepository.logout();
+      await UserSessionStore.instance.clear();
       emit(LogoutSuccess());
     } catch (e) {
+      await UserSessionStore.instance.clear();
       emit(LogoutSuccess());
     }
   }
@@ -301,13 +326,31 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       message.startsWith('No internet connection') ||
       message.startsWith('Network error occurred');
 
-  UserModel _buildLocalUser({required String mobile}) {
-    return UserModel(
+  Future<UserModel> _buildLocalUser({required String mobile}) async {
+    final fallbackName = UserSessionStore.instance.fallbackNameForMobile(mobile);
+    final user = UserModel(
       id: 'local-login-user',
-      fullName: 'Demo User',
+      fullName: fallbackName.isNotEmpty ? fallbackName : 'Learner',
       email: 'demo@bioxplora.com',
       mobile: mobile,
       token: 'local-login-token',
+    );
+    final session = await UserSessionStore.instance.saveUser(user);
+    return _userWithSession(user, session);
+  }
+
+  UserModel _userWithSession(UserModel user, UserSessionState session) {
+    return UserModel(
+      id: user.id,
+      fullName: session.fullName,
+      email: session.email,
+      mobile: session.mobile,
+      profileImage: user.profileImage,
+      collegeName: session.collegeName,
+      department: session.department,
+      yearOfStudy: session.yearOfStudy,
+      programType: session.programType,
+      token: user.token,
     );
   }
 }

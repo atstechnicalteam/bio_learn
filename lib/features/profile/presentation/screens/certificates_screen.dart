@@ -273,7 +273,7 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
                   borderRadius: BorderRadius.circular(AppSizes.radiusMD),
                 ),
                 child: const Text(
-                  'Complete all lessons and pass the final quiz to reveal this certificate.',
+                  'Complete every module, finish all lessons, and pass each module quiz to reveal this certificate.',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,

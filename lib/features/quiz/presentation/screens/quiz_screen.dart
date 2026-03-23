@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../shared/widgets/shared_widgets.dart';
+import '../../../learning/presentation/learning_progress_store.dart';
 import '../../../profile/presentation/screens/certificates_screen.dart';
 
 // ─── Quiz Screen ──────────────────────────────────────────────────────────────
@@ -160,7 +161,7 @@ class _QuizScreenState extends State<QuizScreen> {
                     text: _isLast ? 'View Score' : 'Next Question',
                     onPressed: _selectedAnswer == null
                         ? null
-                        : () {
+                        : () async {
                             _answers[_currentQuestion] = _selectedAnswer!;
                             if (_isLast) {
                               // calculate score
@@ -168,6 +169,14 @@ class _QuizScreenState extends State<QuizScreen> {
                               _answers.forEach((qi, ai) {
                                 if (_questions[qi]['correct'] == ai) correct++;
                               });
+                              final passed = (correct / _questions.length) >= 0.7;
+                              if (passed && widget.isLastModule) {
+                                await LearningProgressStore.instance
+                                    .markFinalQuizPassed();
+                              }
+                              if (!context.mounted) {
+                                return;
+                              }
                               Navigator.of(context).pushReplacement(
                                 MaterialPageRoute(
                                   builder: (_) => QuizResultScreen(
@@ -432,7 +441,9 @@ class QuizResultScreen extends StatelessWidget {
                               const SizedBox(height: 4),
                               Text(
                                 _passed
-                                    ? 'You passed the module quiz and unlocked the next lesson path in your course.'
+                                    ? (isLastModule
+                                        ? 'You passed the final quiz and unlocked your certificate.'
+                                        : 'You passed the module quiz and unlocked the next lesson path in your course.')
                                     : 'Please review the lessons and try again to unlock the next part of your course.',
                                 style: TextStyle(
                                   fontSize: 13,

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'core/constants/app_theme.dart';
 import 'features/auth/presentation/screens/splash_screen.dart';
+import 'features/learning/presentation/learning_progress_store.dart';
+import 'shared/models/portal_store.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -11,6 +13,8 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+  await LearningProgressStore.instance.ensureInitialized();
+  await PortalStore.instance.ensureInitialized();
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(

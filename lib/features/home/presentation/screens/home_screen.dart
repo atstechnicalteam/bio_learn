@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../shared/models/portal_store.dart';
 import '../../../../shared/widgets/shared_widgets.dart';
 import '../../bloc/home_bloc.dart';
 import '../../data/models/home_models.dart';
 import '../../data/repositories/home_repository.dart';
+import '../../../checkout/presentation/screens/checkout_screen.dart';
 import '../../../internship/presentation/screens/internship_detail_screen.dart';
 import '../../../career/presentation/screens/career_path_detail_screen.dart';
 import '../../../learning/presentation/screens/my_learning_screen.dart';
@@ -156,7 +158,23 @@ class _HomeTabState extends State<_HomeTab> with SingleTickerProviderStateMixin 
                           IconButton(
                             icon: const Icon(Icons.shopping_cart_outlined,
                                 color: AppColors.textWhite, size: 24),
-                            onPressed: () {},
+                            onPressed: () {
+                              final cartItem = PortalStore.instance.state.value.cartItem;
+                              if (cartItem == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Your cart is empty.'),
+                                  ),
+                                );
+                                return;
+                              }
+
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => CheckoutScreen(program: cartItem),
+                                ),
+                              );
+                            },
                           ),
                         ],
                       ),

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-
 import '../../../core/constants/app_constants.dart';
-
 class AppPrimaryButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
@@ -10,7 +8,6 @@ class AppPrimaryButton extends StatelessWidget {
   final double height;
   final TextStyle? textStyle;
   final double? borderRadius;
-
   const AppPrimaryButton({
     super.key,
     required this.text,
@@ -21,7 +18,6 @@ class AppPrimaryButton extends StatelessWidget {
     this.textStyle,
     this.borderRadius,
   });
-
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -116,6 +112,9 @@ class AppTextField extends StatefulWidget {
   final int? maxLines;
   final bool readOnly;
   final VoidCallback? onTap;
+  final TextStyle? labelStyle;
+  final TextStyle? inputStyle;
+  final TextStyle? hintStyle;
 
   const AppTextField({
     super.key,
@@ -134,6 +133,9 @@ class AppTextField extends StatefulWidget {
     this.maxLines = 1,
     this.readOnly = false,
     this.onTap,
+    this.labelStyle,
+    this.inputStyle,
+    this.hintStyle,
   });
 
   @override
@@ -148,7 +150,10 @@ class _AppTextFieldState extends State<AppTextField> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(widget.label, style: AppTextStyles.formLabel),
+        Text(
+          widget.label,
+          style: widget.labelStyle ?? AppTextStyles.formLabel,
+        ),
         const SizedBox(height: 6),
         TextFormField(
           controller: widget.controller,
@@ -165,10 +170,10 @@ class _AppTextFieldState extends State<AppTextField> {
           maxLines: widget.isPassword ? 1 : widget.maxLines,
           readOnly: widget.readOnly,
           onTap: widget.onTap,
-          style: AppTextStyles.formInput,
+          style: widget.inputStyle ?? AppTextStyles.formInput,
           decoration: InputDecoration(
             hintText: widget.hint,
-            hintStyle: AppTextStyles.formHint,
+            hintStyle: widget.hintStyle ?? AppTextStyles.formHint,
             prefixIcon: widget.prefixIcon != null
                 ? Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -205,6 +210,9 @@ class AppDropdownField<T> extends StatelessWidget {
   final List<DropdownMenuItem<T>> items;
   final ValueChanged<T?> onChanged;
   final String? Function(T?)? validator;
+  final TextStyle? labelStyle;
+  final TextStyle? inputStyle;
+  final TextStyle? hintStyle;
 
   const AppDropdownField({
     super.key,
@@ -214,6 +222,9 @@ class AppDropdownField<T> extends StatelessWidget {
     required this.items,
     required this.onChanged,
     this.validator,
+    this.labelStyle,
+    this.inputStyle,
+    this.hintStyle,
   });
 
   @override
@@ -221,7 +232,7 @@ class AppDropdownField<T> extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTextStyles.formLabel),
+        Text(label, style: labelStyle ?? AppTextStyles.formLabel),
         const SizedBox(height: 6),
         DropdownButtonFormField<T>(
           initialValue: value,
@@ -232,10 +243,10 @@ class AppDropdownField<T> extends StatelessWidget {
             Icons.keyboard_arrow_down_rounded,
             color: AppColors.textSecondary,
           ),
-          style: AppTextStyles.formInput,
+          style: inputStyle ?? AppTextStyles.formInput,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: AppTextStyles.formHint,
+            hintStyle: hintStyle ?? AppTextStyles.formHint,
           ),
           dropdownColor: AppColors.background,
           borderRadius: BorderRadius.circular(AppSizes.inputRadius),

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_constants.dart';
-import '../../../../shared/widgets/shared_widgets.dart';
-import '../../../quiz/presentation/screens/quiz_screen.dart';
 
-// ─── My Learning Screen ───────────────────────────────────────────────────────
+import '../../../../core/constants/app_constants.dart';
+import '../learning_progress_store.dart';
+import '../../../quiz/presentation/screens/quiz_screen.dart';
 
 class MyLearningScreen extends StatelessWidget {
   const MyLearningScreen({super.key});
@@ -21,123 +20,174 @@ class MyLearningScreen extends StatelessWidget {
             : null,
         title: const Text(AppStrings.myLearning),
       ),
-      body: _MyLearningBody(),
+      body: const _MyLearningBody(),
     );
   }
 }
 
 class _MyLearningBody extends StatelessWidget {
+  const _MyLearningBody();
+
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Hero Image
-          SizedBox(
-            height: 200,
-            width: double.infinity,
-            child: Image.network(
-              'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800',
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                color: AppColors.primary,
-                child: const Center(
-                  child: Icon(Icons.biotech_outlined,
-                      color: Colors.white, size: 60),
-                ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(AppSizes.paddingMD),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Medical Coding Internship', style: AppTextStyles.headingMD),
-                const SizedBox(height: 12),
-                // Progress
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppColors.background,
-                    borderRadius: BorderRadius.circular(AppSizes.radiusMD),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('Course Progress',
-                              style: TextStyle(
-                                  fontSize: 14, fontWeight: FontWeight.w500)),
-                          Text('0%',
-                              style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.primary)),
-                        ],
+    return ValueListenableBuilder<LearningProgressState>(
+      valueListenable: LearningProgressStore.instance.progress,
+      builder: (context, progress, _) {
+        final completionPercent = (progress.progressValue * 100).round();
+
+        return SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                height: 200,
+                width: double.infinity,
+                child: Image.network(
+                  'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800',
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    color: AppColors.primary,
+                    child: const Center(
+                      child: Icon(
+                        Icons.biotech_outlined,
+                        color: Colors.white,
+                        size: 60,
                       ),
-                      const SizedBox(height: 8),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: const LinearProgressIndicator(
-                          value: 0,
-                          backgroundColor: AppColors.progressBg,
-                          valueColor: AlwaysStoppedAnimation(AppColors.primary),
-                          minHeight: 6,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      const Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text('0 / 30 Lessons Completed',
-                            style: TextStyle(
-                                fontSize: 12, color: AppColors.textSecondary)),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text('Course Modules', style: AppTextStyles.headingSM),
-                const SizedBox(height: 12),
-                // Modules
-                _ModuleCard(
-                  title: 'Module 1 – Introduction to Medical Coding',
-                  subtitle: '5 Lessons • 1 Quiz • 30 Minutes',
-                  isUnlocked: true,
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const LessonScreen(),
                     ),
                   ),
                 ),
-                _ModuleCard(
-                  title: 'Module 2 – ICD-10 Basics',
-                  subtitle: 'Complete previous module to unlock',
-                  isUnlocked: false,
+              ),
+              Padding(
+                padding: const EdgeInsets.all(AppSizes.paddingMD),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      LearningProgressState.courseTitle,
+                      style: AppTextStyles.headingMD,
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: AppColors.background,
+                        borderRadius:
+                            BorderRadius.circular(AppSizes.radiusMD),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Course Progress',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                '$completionPercent%',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: progress.progressValue,
+                              backgroundColor: AppColors.progressBg,
+                              valueColor: const AlwaysStoppedAnimation(
+                                AppColors.primary,
+                              ),
+                              minHeight: 6,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              '${progress.completedLessonsCount} / ${LearningProgressState.totalLessons} Lessons Completed',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: progress.certificateUnlocked
+                                  ? AppColors.successLight
+                                  : AppColors.backgroundGrey,
+                              borderRadius: BorderRadius.circular(
+                                AppSizes.radiusMD,
+                              ),
+                            ),
+                            child: Text(
+                              progress.certificateUnlocked
+                                  ? 'Certificate unlocked. You can now open your certificate screen and export the PDF.'
+                                  : 'Complete all lessons and pass the final quiz to unlock your certificate.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: progress.certificateUnlocked
+                                    ? AppColors.success
+                                    : AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text('Course Modules', style: AppTextStyles.headingSM),
+                    const SizedBox(height: 12),
+                    _ModuleCard(
+                      title: 'Module 1 - Introduction to Medical Coding',
+                      subtitle: '5 Lessons | 1 Final Quiz | 30 Minutes',
+                      isUnlocked: true,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const LessonScreen(),
+                        ),
+                      ),
+                    ),
+                    const _ModuleCard(
+                      title: 'Module 2 - ICD-10 Basics',
+                      subtitle: 'Complete previous module to unlock',
+                      isUnlocked: false,
+                    ),
+                    const _ModuleCard(
+                      title: 'Module 3 - Clinical Documentation',
+                      subtitle: 'Complete previous module to unlock',
+                      isUnlocked: false,
+                    ),
+                    const _ModuleCard(
+                      title: 'Module 4 - Medical Billing',
+                      subtitle: 'Complete previous module to unlock',
+                      isUnlocked: false,
+                    ),
+                    const _ModuleCard(
+                      title: 'Module 5 - Practical Coding Exercises',
+                      subtitle: 'Complete previous module to unlock',
+                      isUnlocked: false,
+                    ),
+                  ],
                 ),
-                _ModuleCard(
-                  title: 'Module 3 – Clinical Documentation',
-                  subtitle: 'Complete previous module to unlock',
-                  isUnlocked: false,
-                ),
-                _ModuleCard(
-                  title: 'Module 4 – Medical Billing',
-                  subtitle: 'Complete previous module to unlock',
-                  isUnlocked: false,
-                ),
-                _ModuleCard(
-                  title: 'Module 5 – Practical Coding Exercises',
-                  subtitle: 'Complete previous module to unlock',
-                  isUnlocked: false,
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -175,20 +225,25 @@ class _ModuleCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: isUnlocked
-                              ? AppColors.textPrimary
-                              : AppColors.textSecondary,
-                        )),
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: isUnlocked
+                            ? AppColors.textPrimary
+                            : AppColors.textSecondary,
+                      ),
+                    ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
                         if (!isUnlocked)
-                          const Icon(Icons.lock_outline_rounded,
-                              size: 13, color: AppColors.textHint),
+                          const Icon(
+                            Icons.lock_outline_rounded,
+                            size: 13,
+                            color: AppColors.textHint,
+                          ),
                         if (!isUnlocked) const SizedBox(width: 4),
                         Expanded(
                           child: Text(subtitle, style: AppTextStyles.bodySM),
@@ -199,10 +254,13 @@ class _ModuleCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: isUnlocked
-                      ? AppColors.success.withOpacity(0.1)
+                      ? AppColors.success.withValues(alpha: 0.1)
                       : AppColors.backgroundGrey,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
@@ -214,7 +272,8 @@ class _ModuleCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: isUnlocked ? AppColors.success : AppColors.textSecondary,
+                    color:
+                        isUnlocked ? AppColors.success : AppColors.textSecondary,
                   ),
                 ),
               ),
@@ -237,8 +296,6 @@ class _ModuleCard extends StatelessWidget {
   }
 }
 
-// ─── Lesson / Video Screen ────────────────────────────────────────────────────
-
 class LessonScreen extends StatefulWidget {
   const LessonScreen({super.key});
 
@@ -247,28 +304,71 @@ class LessonScreen extends StatefulWidget {
 }
 
 class _LessonScreenState extends State<LessonScreen> {
+  final LearningProgressStore _progressStore = LearningProgressStore.instance;
+
   int _currentLesson = 0;
   bool _allCompleted = false;
 
   final List<Map<String, dynamic>> _lessons = [
-    {'title': '1. What is Medical Coding?', 'duration': '8:30', 'completed': false},
-    {'title': '2. History of Medical Coding', 'duration': '10:25', 'completed': false},
-    {'title': '3. Healthcare Ecosystem', 'duration': '12:15', 'completed': false},
-    {'title': '4. Role of a Medical Coder', 'duration': '9:20', 'completed': false},
-    {'title': '5. Basic Terminology', 'duration': '15:00', 'completed': false},
+    {
+      'title': '1. What is Medical Coding?',
+      'duration': '8:30',
+      'completed': false,
+    },
+    {
+      'title': '2. History of Medical Coding',
+      'duration': '10:25',
+      'completed': false,
+    },
+    {
+      'title': '3. Healthcare Ecosystem',
+      'duration': '12:15',
+      'completed': false,
+    },
+    {
+      'title': '4. Role of a Medical Coder',
+      'duration': '9:20',
+      'completed': false,
+    },
+    {
+      'title': '5. Basic Terminology',
+      'duration': '15:00',
+      'completed': false,
+    },
   ];
 
-  void _markComplete(int index) {
+  @override
+  void initState() {
+    super.initState();
+
+    final progress = _progressStore.progress.value;
+    for (var index = 0; index < _lessons.length; index++) {
+      _lessons[index]['completed'] =
+          progress.completedLessonIndexes.contains(index);
+    }
+    _allCompleted = progress.allLessonsCompleted;
+  }
+
+  int get _completedLessonCount =>
+      _lessons.where((lesson) => lesson['completed'] == true).length;
+
+  Future<void> _markComplete(int index) async {
+    if (_lessons[index]['completed'] == true) {
+      return;
+    }
+
     setState(() {
       _lessons[index]['completed'] = true;
-      if (_lessons.every((l) => l['completed'] == true)) {
-        _allCompleted = true;
-      }
+      _allCompleted = _lessons.every((lesson) => lesson['completed'] == true);
     });
+
+    await _progressStore.markLessonCompleted(index);
   }
 
   @override
   Widget build(BuildContext context) {
+    final finalQuizPassed = _progressStore.progress.value.finalQuizPassed;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -276,13 +376,12 @@ class _LessonScreenState extends State<LessonScreen> {
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text('Medical Coding Internship'),
+        title: const Text(LearningProgressState.courseTitle),
       ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Video Player placeholder
             GestureDetector(
               onTap: () => _markComplete(_currentLesson),
               child: Container(
@@ -302,32 +401,41 @@ class _LessonScreenState extends State<LessonScreen> {
                       width: 56,
                       height: 56,
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.9),
+                        color: AppColors.primary.withValues(alpha: 0.9),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.play_arrow_rounded,
-                          color: Colors.white, size: 32),
+                      child: const Icon(
+                        Icons.play_arrow_rounded,
+                        color: Colors.white,
+                        size: 32,
+                      ),
                     ),
-                    Positioned(
+                    const Positioned(
                       bottom: 10,
                       left: 12,
-                      child: const Text('04:12',
-                          style: TextStyle(color: Colors.white, fontSize: 12)),
+                      child: Text(
+                        '04:12',
+                        style: TextStyle(color: Colors.white, fontSize: 12),
+                      ),
                     ),
-                    Positioned(
+                    const Positioned(
                       bottom: 10,
                       right: 12,
                       child: Row(
-                        children: const [
-                          Text('10:45',
-                              style: TextStyle(color: Colors.white, fontSize: 12)),
+                        children: [
+                          Text(
+                            '10:45',
+                            style: TextStyle(color: Colors.white, fontSize: 12),
+                          ),
                           SizedBox(width: 8),
-                          Icon(Icons.fullscreen_rounded,
-                              color: Colors.white, size: 18),
+                          Icon(
+                            Icons.fullscreen_rounded,
+                            color: Colors.white,
+                            size: 18,
+                          ),
                         ],
                       ),
                     ),
-                    // Progress bar
                     Positioned(
                       bottom: 28,
                       left: 0,
@@ -339,7 +447,9 @@ class _LessonScreenState extends State<LessonScreen> {
                           child: const LinearProgressIndicator(
                             value: 0.4,
                             backgroundColor: Colors.white30,
-                            valueColor: AlwaysStoppedAnimation(AppColors.accent),
+                            valueColor: AlwaysStoppedAnimation(
+                              AppColors.accent,
+                            ),
                             minHeight: 3,
                           ),
                         ),
@@ -355,23 +465,35 @@ class _LessonScreenState extends State<LessonScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.primary,
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: const Text('Module 1',
-                        style: TextStyle(
-                            color: Colors.white, fontSize: 12,
-                            fontWeight: FontWeight.w600)),
+                    child: const Text(
+                      'Module 1',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 10),
-                  Text(_lessons[_currentLesson]['title'],
-                      style: AppTextStyles.headingMD),
+                  Text(
+                    _lessons[_currentLesson]['title'] as String,
+                    style: AppTextStyles.headingMD,
+                  ),
                   const SizedBox(height: 6),
                   const Text(
                     'Understand the medical classification systems from early mortality tracking to modern ICD-10 implementation.',
-                    style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                   const SizedBox(height: 20),
                   Row(
@@ -379,34 +501,39 @@ class _LessonScreenState extends State<LessonScreen> {
                     children: [
                       Text('Lessons in Module 1', style: AppTextStyles.headingSM),
                       Text(
-                        '${_lessons.where((l) => l['completed'] == true).length} / ${_lessons.length} Completed',
+                        '$_completedLessonCount / ${_lessons.length} Completed',
                         style: const TextStyle(
-                            fontSize: 12, color: AppColors.textSecondary),
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
                   ..._lessons.asMap().entries.map((entry) {
-                    final i = entry.key;
+                    final index = entry.key;
                     final lesson = entry.value;
                     final isCompleted = lesson['completed'] as bool;
-                    final isCurrent = i == _currentLesson;
+                    final isCurrent = index == _currentLesson;
 
                     return GestureDetector(
-                      onTap: () => setState(() => _currentLesson = i),
+                      onTap: () => setState(() => _currentLesson = index),
                       child: Container(
                         margin: const EdgeInsets.only(bottom: 8),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 12),
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
                         decoration: BoxDecoration(
                           color: isCurrent
                               ? AppColors.cardBackground
                               : AppColors.background,
-                          borderRadius: BorderRadius.circular(AppSizes.radiusMD),
+                          borderRadius: BorderRadius.circular(
+                            AppSizes.radiusMD,
+                          ),
                           border: Border.all(
-                            color: isCurrent
-                                ? AppColors.primary
-                                : AppColors.border,
+                            color:
+                                isCurrent ? AppColors.primary : AppColors.border,
                             width: isCurrent ? 1.5 : 1,
                           ),
                         ),
@@ -440,16 +567,18 @@ class _LessonScreenState extends State<LessonScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(lesson['title'],
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w500,
-                                        color: isCurrent
-                                            ? AppColors.primary
-                                            : AppColors.textPrimary,
-                                      )),
                                   Text(
-                                    'Video • ${lesson['duration']}${isCurrent ? ' • Playing' : ''}',
+                                    lesson['title'] as String,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: isCurrent
+                                          ? AppColors.primary
+                                          : AppColors.textPrimary,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Video | ${lesson['duration']}${isCurrent ? ' | Playing' : ''}',
                                     style: AppTextStyles.bodySM,
                                   ),
                                 ],
@@ -458,31 +587,58 @@ class _LessonScreenState extends State<LessonScreen> {
                             Container(
                               width: 30,
                               height: 30,
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 color: AppColors.primary,
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.download_outlined,
-                                  color: Colors.white, size: 16),
+                              child: const Icon(
+                                Icons.download_outlined,
+                                color: Colors.white,
+                                size: 16,
+                              ),
                             ),
                           ],
                         ),
                       ),
                     );
                   }),
-                  // Quiz card
+                  Container(
+                    margin: const EdgeInsets.only(top: 8, bottom: 8),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: finalQuizPassed
+                          ? AppColors.successLight
+                          : AppColors.backgroundGrey,
+                      borderRadius: BorderRadius.circular(AppSizes.radiusMD),
+                    ),
+                    child: Text(
+                      finalQuizPassed
+                          ? 'Final quiz passed. Your certificate is ready in the certificate screen.'
+                          : 'Finish every lesson to unlock the final quiz and certificate.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: finalQuizPassed
+                            ? AppColors.success
+                            : AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
                   GestureDetector(
                     onTap: _allCompleted
                         ? () => Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (_) => const QuizScreen(),
+                                builder: (_) =>
+                                    const QuizScreen(isLastModule: true),
                               ),
                             )
                         : null,
                     child: Container(
                       margin: const EdgeInsets.only(bottom: 8),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 12),
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: _allCompleted
                             ? AppColors.cardBackground
@@ -510,7 +666,9 @@ class _LessonScreenState extends State<LessonScreen> {
                               _allCompleted
                                   ? Icons.play_arrow_rounded
                                   : Icons.lock_outline_rounded,
-                              color: _allCompleted ? Colors.white : AppColors.textHint,
+                              color: _allCompleted
+                                  ? Colors.white
+                                  : AppColors.textHint,
                               size: 18,
                             ),
                           ),
@@ -520,7 +678,7 @@ class _LessonScreenState extends State<LessonScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Module 1 Quiz',
+                                  'Module 1 Final Quiz',
                                   style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w700,
@@ -529,10 +687,13 @@ class _LessonScreenState extends State<LessonScreen> {
                                         : AppColors.textSecondary,
                                   ),
                                 ),
-                                const Text('10 Questions • Needs all videos',
-                                    style: TextStyle(
-                                        fontSize: 11,
-                                        color: AppColors.textSecondary)),
+                                const Text(
+                                  '10 Questions | Needs all lessons',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
                               ],
                             ),
                           ),

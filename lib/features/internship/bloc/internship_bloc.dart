@@ -86,12 +86,14 @@ class CourseModule {
   final String title;
   final int lessonsCount;
   final int quizzesCount;
+  final List<String> lessons;
 
   CourseModule({
     required this.id,
     required this.title,
     required this.lessonsCount,
     required this.quizzesCount,
+    required this.lessons,
   });
 
   factory CourseModule.fromJson(Map<String, dynamic> json) => CourseModule(
@@ -99,6 +101,7 @@ class CourseModule {
         title: json['title'] as String? ?? '',
         lessonsCount: json['lessons_count'] as int? ?? 0,
         quizzesCount: json['quizzes_count'] as int? ?? 0,
+        lessons: List<String>.from(json['lessons'] ?? const []),
       );
 }
 
@@ -202,18 +205,39 @@ InternshipDetailModel _demoInternshipDetail(String id) {
         title: 'Introduction and Foundations',
         lessonsCount: 5,
         quizzesCount: 1,
+        lessons: const [
+          'Introduction to Medical Coding',
+          'Healthcare Documentation Basics',
+          'Core Medical Terminology',
+          'Patient File Review',
+          'Module Recap and Quiz Prep',
+        ],
       ),
       CourseModule(
         id: 'module-2',
         title: 'Core Concepts and Workflow',
         lessonsCount: 6,
         quizzesCount: 1,
+        lessons: const [
+          'ICD-10 Structure and Navigation',
+          'CPT Coding Essentials',
+          'Modifiers and Usage Rules',
+          'Common Coding Errors',
+          'Claim Workflow Walkthrough',
+          'Module Recap and Quiz Prep',
+        ],
       ),
       CourseModule(
         id: 'module-3',
         title: 'Hands-on Practice',
         lessonsCount: 4,
         quizzesCount: 1,
+        lessons: const [
+          'Case Study Review',
+          'Inpatient Coding Practice',
+          'Outpatient Coding Practice',
+          'Final Assessment Prep',
+        ],
       ),
     ],
   );

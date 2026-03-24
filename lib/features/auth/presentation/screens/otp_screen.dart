@@ -29,7 +29,7 @@ class _OtpScreenState extends State<OtpScreen> {
     super.initState();
     _startTimer();
   }
-
+// Timer logic to handle resend OTP cooldown
   void _startTimer() {
     _secondsRemaining = 59;
     _canResend = false;

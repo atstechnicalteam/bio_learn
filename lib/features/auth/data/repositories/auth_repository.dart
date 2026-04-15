@@ -6,19 +6,20 @@ import '../models/auth_models.dart';
 abstract class AuthRepository {
   Future<UserModel> login(LoginRequestModel request);
   Future<void> register(RegisterRequestModel request);
-  Future<void> sendOtp(String mobile);
+  Future<void> sendOtp(String email);
   Future<UserModel> verifyOtp(OtpRequestModel request);
-  Future<void> resendOtp(String mobile);
+  Future<void> resendOtp(String email);
   Future<void> saveStudentInfo(StudentInfoRequestModel request);
   Future<void> logout();
   Future<void> forgotPassword(String mobile);
+  Future<void> resetPassword(ResetPasswordRequestModel request);
 }
 
 class AuthRepositoryImpl implements AuthRepository {
   final ApiClient _apiClient;
 
   AuthRepositoryImpl({ApiClient? apiClient})
-      : _apiClient = apiClient ?? ApiClient();
+    : _apiClient = apiClient ?? ApiClient();
 
   @override
   Future<UserModel> login(LoginRequestModel request) async {
@@ -42,10 +43,9 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> sendOtp(String mobile) async {
+  Future<void> sendOtp(String email) async {
     await _apiClient.post(
-      ApiEndpoints.sendOtp,
-      body: {'mobile': mobile},
+      ApiEndpoints.sendOtp(email),
       requiresAuth: false,
     );
   }
@@ -63,20 +63,16 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> resendOtp(String mobile) async {
+  Future<void> resendOtp(String email) async {
     await _apiClient.post(
-      ApiEndpoints.resendOtp,
-      body: {'mobile': mobile},
+      ApiEndpoints.resendOtp(email),
       requiresAuth: false,
     );
   }
 
   @override
   Future<void> saveStudentInfo(StudentInfoRequestModel request) async {
-    await _apiClient.post(
-      ApiEndpoints.studentInfo,
-      body: request.toJson(),
-    );
+    await _apiClient.post(ApiEndpoints.studentInfo, body: request.toJson());
   }
 
   @override
@@ -93,6 +89,15 @@ class AuthRepositoryImpl implements AuthRepository {
     await _apiClient.post(
       ApiEndpoints.forgotPassword,
       body: {'mobile': mobile},
+      requiresAuth: false,
+    );
+  }
+
+  @override
+  Future<void> resetPassword(ResetPasswordRequestModel request) async {
+    await _apiClient.post(
+      ApiEndpoints.resetPassword,
+      body: request.toJson(),
       requiresAuth: false,
     );
   }

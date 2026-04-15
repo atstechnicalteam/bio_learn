@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_constants.dart';
+
 class AppPrimaryButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
@@ -150,10 +151,7 @@ class _AppTextFieldState extends State<AppTextField> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          widget.label,
-          style: widget.labelStyle ?? AppTextStyles.formLabel,
-        ),
+        Text(widget.label, style: widget.labelStyle ?? AppTextStyles.formLabel),
         const SizedBox(height: 6),
         TextFormField(
           controller: widget.controller,
@@ -338,6 +336,274 @@ class LoadingOverlay extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+// Sweet Alert Dialogs
+Future<void> showSuccessDialog(
+  BuildContext context, {
+  required String title,
+  required String message,
+  String buttonText = 'OK',
+  VoidCallback? onPressed,
+}) {
+  return showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      backgroundColor: AppColors.background,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      title: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: const BoxDecoration(
+              color: AppColors.success,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.check, color: Colors.white, size: 24),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ),
+        ],
+      ),
+      content: Text(
+        message,
+        style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+      ),
+      actions: [
+        ElevatedButton(
+          onPressed: () {
+            Navigator.pop(context);
+            onPressed?.call();
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.success,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          child: Text(buttonText, style: const TextStyle(color: Colors.white)),
+        ),
+      ],
+    ),
+  );
+}
+
+Future<void> showErrorDialog(
+  BuildContext context, {
+  required String title,
+  required String message,
+  String buttonText = 'OK',
+  VoidCallback? onPressed,
+}) {
+  return showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      backgroundColor: AppColors.background,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      title: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: const BoxDecoration(
+              color: AppColors.error,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.close, color: Colors.white, size: 24),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ),
+        ],
+      ),
+      content: Text(
+        message,
+        style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+      ),
+      actions: [
+        ElevatedButton(
+          onPressed: () {
+            Navigator.pop(context);
+            onPressed?.call();
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.error,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          child: Text(buttonText, style: const TextStyle(color: Colors.white)),
+        ),
+      ],
+    ),
+  );
+}
+
+Future<void> showWarningDialog(
+  BuildContext context, {
+  required String title,
+  required String message,
+  String confirmText = 'Confirm',
+  String cancelText = 'Cancel',
+  VoidCallback? onConfirm,
+  VoidCallback? onCancel,
+}) {
+  return showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      backgroundColor: AppColors.background,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      title: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.warning.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.warning_rounded,
+              color: Colors.orange,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ),
+        ],
+      ),
+      content: Text(
+        message,
+        style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+            onCancel?.call();
+          },
+          child: Text(
+            cancelText,
+            style: const TextStyle(color: AppColors.textSecondary),
+          ),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            Navigator.pop(context);
+            onConfirm?.call();
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.orange,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          child: Text(confirmText, style: const TextStyle(color: Colors.white)),
+        ),
+      ],
+    ),
+  );
+}
+
+Future<void> showInfoDialog(
+  BuildContext context, {
+  required String title,
+  required String message,
+  String buttonText = 'OK',
+  VoidCallback? onPressed,
+}) {
+  return showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      backgroundColor: AppColors.background,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      title: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: const BoxDecoration(
+              color: AppColors.primary,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.info, color: Colors.white, size: 24),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ),
+        ],
+      ),
+      content: Text(
+        message,
+        style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+      ),
+      actions: [
+        ElevatedButton(
+          onPressed: () {
+            Navigator.pop(context);
+            onPressed?.call();
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          child: Text(buttonText, style: const TextStyle(color: Colors.white)),
+        ),
+      ],
+    ),
+  );
+}
+
+class BioxploraLogoWidget extends StatelessWidget {
+  final double logoWidth;
+
+  const BioxploraLogoWidget({super.key, this.logoWidth = 100});
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.asset(
+      'assets/biologo.png',
+      width: logoWidth,
+      fit: BoxFit.contain,
     );
   }
 }

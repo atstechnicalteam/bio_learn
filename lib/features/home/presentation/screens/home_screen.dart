@@ -1,3 +1,4 @@
+import 'package:bio_xplora_portal/shared/models/api_models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

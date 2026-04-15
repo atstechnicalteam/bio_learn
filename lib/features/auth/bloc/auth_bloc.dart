@@ -40,25 +40,25 @@ class RegisterSubmitted extends AuthEvent {
 }
 
 class SendOtpRequested extends AuthEvent {
-  final String mobile;
-  const SendOtpRequested({required this.mobile});
+  final String email;
+  const SendOtpRequested({required this.email});
   @override
-  List<Object?> get props => [mobile];
+  List<Object?> get props => [email];
 }
 
 class OtpVerified extends AuthEvent {
-  final String mobile;
+  final String email;
   final String otp;
-  const OtpVerified({required this.mobile, required this.otp});
+  const OtpVerified({required this.email, required this.otp});
   @override
-  List<Object?> get props => [mobile, otp];
+  List<Object?> get props => [email, otp];
 }
 
 class ResendOtpRequested extends AuthEvent {
-  final String mobile;
-  const ResendOtpRequested({required this.mobile});
+  final String email;
+  const ResendOtpRequested({required this.email});
   @override
-  List<Object?> get props => [mobile];
+  List<Object?> get props => [email];
 }
 
 class StudentInfoSubmitted extends AuthEvent {
@@ -105,17 +105,17 @@ class LoginSuccess extends AuthState {
 }
 
 class RegisterSuccess extends AuthState {
-  final String mobile;
-  const RegisterSuccess({required this.mobile});
+  final String email;
+  const RegisterSuccess({required this.email});
   @override
-  List<Object?> get props => [mobile];
+  List<Object?> get props => [email];
 }
 
 class OtpSentSuccess extends AuthState {
-  final String mobile;
-  const OtpSentSuccess({required this.mobile});
+  final String email;
+  const OtpSentSuccess({required this.email});
   @override
-  List<Object?> get props => [mobile];
+  List<Object?> get props => [email];
 }
 
 class OtpVerifiedSuccess extends AuthState {
@@ -194,73 +194,57 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           confirmPassword: event.confirmPassword,
         ),
       );
+      emit(RegisterSuccess(email: event.email));
     } catch (e) {
       final message = _errorMessage(e);
       if (!_isOfflineError(message)) {
         emit(AuthError(message: message));
         return;
       }
+      emit(RegisterSuccess(email: event.email));
     }
-    emit(RegisterSuccess(mobile: event.mobile));
   }
 
   Future<void> _onSendOtpRequested(
     SendOtpRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
-      await _authRepository.sendOtp(event.mobile);
+      await _authRepository.sendOtp(event.email);
+      emit(OtpSentSuccess(email: event.email));
     } catch (e) {
-      final message = _errorMessage(e);
-      if (!_isOfflineError(message)) {
-        emit(AuthError(message: message));
-        return;
-      }
+      emit(AuthError(message: _errorMessage(e)));
     }
-    emit(OtpSentSuccess(mobile: event.mobile));
   }
 
   Future<void> _onOtpVerified(
     OtpVerified event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
-    if (event.otp == '1234') {
-      final session = await UserSessionStore.instance.saveUser(
-        UserModel(
-          id: 'local-otp-user',
-          fullName: '',
-          email: '',
-          mobile: event.mobile,
-          token: 'local-otp-token',
-        ),
+    try {
+      final user = await _authRepository.verifyOtp(
+        OtpRequestModel(email: event.email, otp: event.otp),
       );
-      emit(
-        OtpVerifiedSuccess(
-          user: UserModel(
-            id: 'local-otp-user',
-            fullName: session.fullName,
-            email: session.email,
-            mobile: session.mobile,
-            token: 'local-otp-token',
-          ),
-        ),
-      );
-      return;
+      final session = await UserSessionStore.instance.saveUser(user);
+      emit(OtpVerifiedSuccess(user: _userWithSession(user, session)));
+    } catch (e) {
+      final message = _errorMessage(e);
+      if (_isOfflineError(message)) {
+        final localUser = await _buildLocalUser(email: event.email);
+        emit(OtpVerifiedSuccess(user: localUser));
+        return;
+      }
+      emit(AuthError(message: message));
     }
-
-    emit(const AuthError(message: 'Invalid OTP'));
   }
 
   Future<void> _onResendOtpRequested(
     ResendOtpRequested event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
     try {
-      await _authRepository.resendOtp(event.mobile);
+      await _authRepository.resendOtp(event.email);
+      emit(OtpSentSuccess(email: event.email));
     } catch (e) {
-      final message = _errorMessage(e);
-      if (!_isOfflineError(message)) {
-        emit(AuthError(message: message));
-        return;
-      }
+      emit(AuthError(message: _errorMessage(e)));
     }
-    emit(OtpSentSuccess(mobile: event.mobile));
   }
 
   Future<void> _onStudentInfoSubmitted(
@@ -326,12 +310,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       message.startsWith('No internet connection') ||
       message.startsWith('Network error occurred');
 
-  Future<UserModel> _buildLocalUser({required String mobile}) async {
-    final fallbackName = UserSessionStore.instance.fallbackNameForMobile(mobile);
+  Future<UserModel> _buildLocalUser({String email = '', String mobile = ''}) async {
     final user = UserModel(
       id: 'local-login-user',
-      fullName: fallbackName.isNotEmpty ? fallbackName : 'Learner',
-      email: 'demo@bioxplora.com',
+      fullName: 'Learner',
+      email: email,
       mobile: mobile,
       token: 'local-login-token',
     );

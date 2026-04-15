@@ -10,14 +10,23 @@ import '../../data/repositories/auth_repository.dart';
 import 'student_info_screen.dart';
 
 class OtpScreen extends StatefulWidget {
-  final String mobile;
-  const OtpScreen({super.key, required this.mobile});
+  final String email;
+  const OtpScreen({super.key, required this.email});
 
   @override
   State<OtpScreen> createState() => _OtpScreenState();
 }
 
 class _OtpScreenState extends State<OtpScreen> {
+  void _verifyOtp(BuildContext context) {
+    if (_otp.length < 4) return;
+    context.read<AuthBloc>().add(OtpVerified(email: widget.email, otp: _otp));
+  }
+
+  void _resendOtp(BuildContext context) {
+    if (!_canResend) return;
+    context.read<AuthBloc>().add(ResendOtpRequested(email: widget.email));
+  }
   final List<TextEditingController> _controllers = List.generate(
     4,
     (_) => TextEditingController(),
@@ -64,8 +73,12 @@ class _OtpScreenState extends State<OtpScreen> {
   @override
   void dispose() {
     _timer?.cancel();
-    for (var c in _controllers) c.dispose();
-    for (var f in _focusNodes) f.dispose();
+    for (var c in _controllers) {
+      c.dispose();
+    }
+    for (var f in _focusNodes) {
+      f.dispose();
+    }
     super.dispose();
   }
 
@@ -145,7 +158,7 @@ class _OtpScreenState extends State<OtpScreen> {
                                   ),
                                   const SizedBox(height: AppSizes.paddingXS),
                                   Text(
-                                    '+91 ${widget.mobile}',
+                                    widget.email,
                                     style: AppTextStyles.headingSM.copyWith(
                                       color: AppColors.textPrimary,
                                     ),
@@ -169,6 +182,9 @@ class _OtpScreenState extends State<OtpScreen> {
                                           } else {
                                             focusNodeUnfocusIfLast(i, val);
                                           }
+                                          if (_otp.length == 4) {
+                                            _verifyOtp(context);
+                                          }
                                           setState(() {});
                                         },
                                       );
@@ -179,14 +195,7 @@ class _OtpScreenState extends State<OtpScreen> {
                                     text: AppStrings.verifyAndContinue,
                                     isLoading: state is AuthLoading,
                                     onPressed: _otp.length == 4
-                                        ? () {
-                                            context.read<AuthBloc>().add(
-                                              OtpVerified(
-                                                mobile: widget.mobile,
-                                                otp: _otp,
-                                              ),
-                                            );
-                                          }
+                                        ? () => _verifyOtp(context)
                                         : null,
                                   ),
                                   const SizedBox(height: AppSizes.paddingLG),
@@ -206,13 +215,7 @@ class _OtpScreenState extends State<OtpScreen> {
                                         ),
                                         GestureDetector(
                                           onTap: _canResend
-                                              ? () {
-                                                  context.read<AuthBloc>().add(
-                                                    ResendOtpRequested(
-                                                      mobile: widget.mobile,
-                                                    ),
-                                                  );
-                                                }
+                                              ? () => _resendOtp(context)
                                               : null,
                                           child: Text(
                                             AppStrings.resend,

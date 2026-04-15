@@ -1,7 +1,7 @@
+import 'package:bio_xplora_portal/shared/models/api_models.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../shared/widgets/shared_widgets.dart';
-import '../../../home/data/models/home_models.dart';
 import '../../../home/data/repositories/home_repository.dart';
 import '../../../internship/presentation/screens/internship_detail_screen.dart';
 

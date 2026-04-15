@@ -1,9 +1,10 @@
 import 'package:bio_xplora_portal/features/home/data/models/home_models.dart';
 import 'package:bio_xplora_portal/features/home/data/repositories/home_repository.dart';
+import 'package:bio_xplora_portal/shared/models/api_models.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/network/connectivity_checker.dart';
 import '../../../shared/models/user_session_store.dart';
-
 
 // ─── Events ───────────────────────────────────────────────────────────────────
 
@@ -63,8 +64,13 @@ class HomeLoaded extends HomeState {
   });
 
   @override
-  List<Object?> get props =>
-      [items, careerPaths, continueLearning, activeTab, userName];
+  List<Object?> get props => [
+    items,
+    careerPaths,
+    continueLearning,
+    activeTab,
+    userName,
+  ];
 
   HomeLoaded copyWith({
     List<InternshipModel>? items,
@@ -96,17 +102,31 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final HomeRepository _homeRepository;
 
   HomeBloc({required HomeRepository homeRepository})
-      : _homeRepository = homeRepository,
-        super(HomeInitial()) {
+    : _homeRepository = homeRepository,
+      super(HomeInitial()) {
     on<HomeDataLoaded>(_onHomeDataLoaded);
     on<HomeTabChanged>(_onHomeTabChanged);
     on<HomeSearchChanged>(_onHomeSearchChanged);
   }
 
   Future<void> _onHomeDataLoaded(
-      HomeDataLoaded event, Emitter<HomeState> emit) async {
+    HomeDataLoaded event,
+    Emitter<HomeState> emit,
+  ) async {
     emit(HomeLoading());
     try {
+      // Check internet connectivity first
+      final hasConnection = await ConnectivityChecker.hasInternetConnection();
+      if (!hasConnection) {
+        emit(
+          const HomeError(
+            message:
+                'No internet connection. Please check your network and try again.',
+          ),
+        );
+        return;
+      }
+
       await UserSessionStore.instance.ensureInitialized();
       final results = await Future.wait([
         event.tab == 'internships'
@@ -116,23 +136,39 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         _homeRepository.getContinueLearning(),
       ]);
 
-      emit(HomeLoaded(
-        items: results[0] as List<InternshipModel>,
-        careerPaths: results[1] as List<CareerPathModel>,
-        continueLearning: results[2] as ContinueLearningModel?,
-        activeTab: event.tab,
-        userName: UserSessionStore.instance.state.value.displayName,
-      ));
+      emit(
+        HomeLoaded(
+          items: results[0] as List<InternshipModel>,
+          careerPaths: results[1] as List<CareerPathModel>,
+          continueLearning: results[2] as ContinueLearningModel?,
+          activeTab: event.tab,
+          userName: UserSessionStore.instance.state.value.displayName,
+        ),
+      );
     } catch (e) {
       emit(HomeError(message: e.toString().replaceAll('ApiException: ', '')));
     }
   }
 
   Future<void> _onHomeTabChanged(
-      HomeTabChanged event, Emitter<HomeState> emit) async {
+    HomeTabChanged event,
+    Emitter<HomeState> emit,
+  ) async {
     if (state is HomeLoaded) {
       final current = state as HomeLoaded;
       try {
+        // Check internet connectivity first
+        final hasConnection = await ConnectivityChecker.hasInternetConnection();
+        if (!hasConnection) {
+          emit(
+            const HomeError(
+              message:
+                  'No internet connection. Please check your network and try again.',
+            ),
+          );
+          return;
+        }
+
         final items = event.tab == 'internships'
             ? await _homeRepository.getInternships()
             : await _homeRepository.getCourses();
@@ -144,19 +180,48 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   }
 
   Future<void> _onHomeSearchChanged(
-      HomeSearchChanged event, Emitter<HomeState> emit) async {
+    HomeSearchChanged event,
+    Emitter<HomeState> emit,
+  ) async {
     if (event.query.isEmpty) {
       if (state is HomeLoaded) {
         try {
+          // Check internet connectivity first
+          final hasConnection =
+              await ConnectivityChecker.hasInternetConnection();
+          if (!hasConnection) {
+            emit(
+              const HomeError(
+                message:
+                    'No internet connection. Please check your network and try again.',
+              ),
+            );
+            return;
+          }
+
           final items = event.type == 'courses'
               ? await _homeRepository.getCourses()
               : await _homeRepository.getInternships();
-          emit((state as HomeLoaded).copyWith(items: items, activeTab: event.type));
+          emit(
+            (state as HomeLoaded).copyWith(items: items, activeTab: event.type),
+          );
         } catch (_) {}
       }
       return;
     }
     try {
+      // Check internet connectivity first
+      final hasConnection = await ConnectivityChecker.hasInternetConnection();
+      if (!hasConnection) {
+        emit(
+          const HomeError(
+            message:
+                'No internet connection. Please check your network and try again.',
+          ),
+        );
+        return;
+      }
+
       final items = await _homeRepository.search(event.query, event.type);
       if (state is HomeLoaded) {
         emit((state as HomeLoaded).copyWith(items: items));

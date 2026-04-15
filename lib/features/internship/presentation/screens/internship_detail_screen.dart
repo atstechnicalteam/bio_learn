@@ -5,6 +5,8 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../shared/models/portal_store.dart';
 import '../../../../shared/widgets/shared_widgets.dart';
 import '../../bloc/internship_bloc.dart';
+import '../../data/models/internship_models.dart';
+import '../../data/repositories/internship_repository.dart';
 import '../../../checkout/presentation/screens/checkout_screen.dart';
 
 class InternshipDetailScreen extends StatefulWidget {

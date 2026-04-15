@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/utils/form_validation.dart';
 import '../../../../shared/widgets/shared_widgets.dart';
 import '../../bloc/auth_bloc.dart';
 import '../../data/repositories/auth_repository.dart';
 import 'otp_screen.dart';
-import 'splash_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -44,7 +44,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             if (state is RegisterSuccess) {
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => OtpScreen(mobile: state.mobile),
+                  builder: (_) => OtpScreen(email: state.email),
                 ),
               );
             } else if (state is AuthError) {
@@ -99,12 +99,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     color: AppColors.textHint,
                                     size: 20,
                                   ),
-                                  validator: (v) {
-                                    if (v == null || v.isEmpty) {
-                                      return 'Enter full name';
-                                    }
-                                    return null;
-                                  },
+                                  validator: FormValidation.validateFullName,
                                 ),
                                 const SizedBox(height: AppSizes.paddingMD),
                                 AppTextField(
@@ -117,15 +112,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     color: AppColors.textHint,
                                     size: 20,
                                   ),
-                                  validator: (v) {
-                                    if (v == null || v.isEmpty) {
-                                      return 'Enter email';
-                                    }
-                                    if (!v.contains('@')) {
-                                      return 'Enter valid email';
-                                    }
-                                    return null;
-                                  },
+                                  validator: FormValidation.validateEmail,
                                 ),
                                 const SizedBox(height: AppSizes.paddingMD),
                                 AppTextField(
@@ -138,15 +125,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     color: AppColors.textHint,
                                     size: 20,
                                   ),
-                                  validator: (v) {
-                                    if (v == null || v.isEmpty) {
-                                      return 'Enter mobile number';
-                                    }
-                                    if (v.length < 10) {
-                                      return 'Enter valid mobile number';
-                                    }
-                                    return null;
-                                  },
+                                  validator: FormValidation.validatePhone,
                                 ),
                                 const SizedBox(height: AppSizes.paddingMD),
                                 AppTextField(
@@ -154,19 +133,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   hint: 'Enter password',
                                   controller: _passwordController,
                                   isPassword: true,
-                                  validator: (v) {
-                                    if (v == null || v.isEmpty) {
-                                      return 'Enter password';
-                                    }
-                                    if (v.length < 6) {
-                                      return 'Minimum 6 characters';
-                                    }
-                                    return null;
-                                  },
+                                  validator: FormValidation.validatePassword,
                                 ),
                                 const SizedBox(height: 4),
                                 const Text(
-                                  'Minimum 6 characters',
+                                  'Minimum 6 characters. Optional: Include uppercase letters and numbers for a stronger password',
                                   style: AppTextStyles.helperText,
                                 ),
                                 const SizedBox(height: AppSizes.paddingMD),
@@ -176,15 +147,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   controller: _confirmPasswordController,
                                   isPassword: true,
                                   textInputAction: TextInputAction.done,
-                                  validator: (v) {
-                                    if (v == null || v.isEmpty) {
-                                      return 'Confirm password';
-                                    }
-                                    if (v != _passwordController.text) {
-                                      return 'Passwords do not match';
-                                    }
-                                    return null;
-                                  },
+                                  validator: (v) =>
+                                      FormValidation.validateConfirmPassword(
+                                        v,
+                                        _passwordController.text,
+                                      ),
                                 ),
                                 const SizedBox(height: AppSizes.paddingXL),
                                 AppPrimaryButton(
@@ -238,7 +205,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                         style: AppTextStyles.authSubtitle,
                                       ),
                                       GestureDetector(
-                                        onTap: () => Navigator.of(context).pop(),
+                                        onTap: () =>
+                                            Navigator.of(context).pop(),
                                         child: Text(
                                           AppStrings.login,
                                           style: AppTextStyles.authLink,

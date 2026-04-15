@@ -4,10 +4,7 @@ class LoginRequestModel {
 
   LoginRequestModel({required this.mobile, required this.password});
 
-  Map<String, dynamic> toJson() => {
-        'mobile': mobile,
-        'password': password,
-      };
+  Map<String, dynamic> toJson() => {'mobile': mobile, 'password': password};
 }
 
 class RegisterRequestModel {
@@ -26,24 +23,21 @@ class RegisterRequestModel {
   });
 
   Map<String, dynamic> toJson() => {
-        'full_name': fullName,
-        'email': email,
-        'mobile': mobile,
-        'password': password,
-        'confirm_password': confirmPassword,
-      };
+    'full_name': fullName,
+    'email': email,
+    'mobile': mobile,
+    'password': password,
+    'confirm_password': confirmPassword,
+  };
 }
 
 class OtpRequestModel {
-  final String mobile;
+  final String email;
   final String otp;
 
-  OtpRequestModel({required this.mobile, required this.otp});
+  OtpRequestModel({required this.email, required this.otp});
 
-  Map<String, dynamic> toJson() => {
-        'mobile': mobile,
-        'otp': otp,
-      };
+  Map<String, dynamic> toJson() => {'email': email, 'otp': otp};
 }
 
 class StudentInfoRequestModel {
@@ -60,9 +54,27 @@ class StudentInfoRequestModel {
   });
 
   Map<String, dynamic> toJson() => {
-        'college_name': collegeName,
-        'department': department,
-        'year_of_study': yearOfStudy,
-        'program_type': programType,
-      };
+    'college_name': collegeName,
+    'department': department,
+    'year_of_study': yearOfStudy,
+    'program_type': programType,
+  };
+}
+
+class ResetPasswordRequestModel {
+  final String mobile;
+  final String otp;
+  final String newPassword;
+
+  ResetPasswordRequestModel({
+    required this.mobile,
+    required this.otp,
+    required this.newPassword,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'mobile': mobile,
+    'otp': otp,
+    'new_password': newPassword,
+  };
 }

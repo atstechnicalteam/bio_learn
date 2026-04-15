@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/utils/form_validation.dart';
 import '../../../../shared/widgets/shared_widgets.dart';
 import '../../../home/presentation/screens/home_screen.dart';
 import '../../bloc/auth_bloc.dart';
@@ -114,12 +115,7 @@ class _StudentInfoScreenState extends State<StudentInfoScreen> {
                         labelStyle: AppTextStyles.labelMD,
                         inputStyle: _legacyInputStyle,
                         hintStyle: _legacyHintStyle,
-                        validator: (v) {
-                          if (v == null || v.isEmpty) {
-                            return 'Enter college name';
-                          }
-                          return null;
-                        },
+                        validator: FormValidation.validateCollege,
                       ),
                       const SizedBox(height: AppSizes.paddingMD),
                       AppDropdownField<String>(
@@ -131,13 +127,11 @@ class _StudentInfoScreenState extends State<StudentInfoScreen> {
                         hintStyle: _legacyHintStyle,
                         items: _departments
                             .map(
-                              (d) => DropdownMenuItem(
-                                value: d,
-                                child: Text(d),
-                              ),
+                              (d) => DropdownMenuItem(value: d, child: Text(d)),
                             )
                             .toList(),
-                        onChanged: (v) => setState(() => _selectedDepartment = v),
+                        onChanged: (v) =>
+                            setState(() => _selectedDepartment = v),
                         validator: (v) {
                           if (v == null) return 'Select department';
                           return null;
@@ -153,10 +147,7 @@ class _StudentInfoScreenState extends State<StudentInfoScreen> {
                         hintStyle: _legacyHintStyle,
                         items: _years
                             .map(
-                              (y) => DropdownMenuItem(
-                                value: y,
-                                child: Text(y),
-                              ),
+                              (y) => DropdownMenuItem(value: y, child: Text(y)),
                             )
                             .toList(),
                         onChanged: (v) => setState(() => _selectedYear = v),
@@ -203,13 +194,13 @@ class _StudentInfoScreenState extends State<StudentInfoScreen> {
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
                   context.read<AuthBloc>().add(
-                        StudentInfoSubmitted(
-                          collegeName: _collegeController.text.trim(),
-                          department: _selectedDepartment!,
-                          yearOfStudy: _selectedYear!,
-                          programType: _programType,
-                        ),
-                      );
+                    StudentInfoSubmitted(
+                      collegeName: _collegeController.text.trim(),
+                      department: _selectedDepartment!,
+                      yearOfStudy: _selectedYear!,
+                      programType: _programType,
+                    ),
+                  );
                 }
               },
             ),

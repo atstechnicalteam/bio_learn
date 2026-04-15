@@ -8,7 +8,7 @@
 PRODUCT_NAME = bio_xplora_portal
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.example.bioXploraPortal
+PRODUCT_BUNDLE_IDENTIFIER = com.bioxplora.bio_xplora_portal
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 com.example. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 com.bioxplora. All rights reserved.

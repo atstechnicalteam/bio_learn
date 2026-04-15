@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/utils/form_validation.dart';
 import '../../../../shared/widgets/shared_widgets.dart';
 import '../../../home/presentation/screens/home_screen.dart';
 import '../../bloc/auth_bloc.dart';
 import '../../data/repositories/auth_repository.dart';
 import 'register_screen.dart';
-import 'splash_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -100,19 +100,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                     hint: '9876543210',
                                     controller: _mobileController,
                                     isPhone: true,
-                                    validator: (v) {
-                                      if (v == null || v.isEmpty) {
-                                        return 'Enter mobile number';
-                                      }
-                                      if (v.length < 10) {
-                                        return 'Enter valid mobile number';
-                                      }
-                                      return null;
-                                    },
+                                    validator: FormValidation.validatePhone,
                                   ),
                                   const SizedBox(height: AppSizes.paddingMD),
                                   Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Row(
                                         mainAxisAlignment:
@@ -127,8 +120,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                             style: TextButton.styleFrom(
                                               padding: EdgeInsets.zero,
                                               minimumSize: Size.zero,
-                                              tapTargetSize: MaterialTapTargetSize
-                                                  .shrinkWrap,
+                                              tapTargetSize:
+                                                  MaterialTapTargetSize
+                                                      .shrinkWrap,
                                             ),
                                             child: Text(
                                               AppStrings.forgotPassword,
@@ -166,9 +160,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                       borderRadius: BorderRadius.circular(8),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: AppColors.textPrimary.withValues(
-                                            alpha: 0.16,
-                                          ),
+                                          color: AppColors.textPrimary
+                                              .withValues(alpha: 0.16),
                                           blurRadius: 10,
                                           offset: const Offset(0, 4),
                                         ),

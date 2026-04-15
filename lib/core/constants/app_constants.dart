@@ -4,7 +4,8 @@ class AppColors {
   AppColors._();
 
   // Primary Colors
-  static const Color primary = Color(0xFF0A0F5C); // Dark Navy Blue
+  static const Color primary = Color(0xFF030761);
+
   static const Color primaryLight = Color(0xFF1A2080);
   static const Color primaryDark = Color(0xFF06093A);
 
@@ -21,6 +22,7 @@ class AppColors {
   // Text
   static const Color textPrimary = Color(0xFF0A0F5C);
   static const Color textSecondary = Color(0xFF8C95A8);
+
   static const Color textHint = Color(0xFFAAB3C3);
   static const Color textWhite = Color(0xFFFFFFFF);
 

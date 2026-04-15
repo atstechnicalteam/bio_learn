@@ -1,68 +1,78 @@
+/// All BioXplora API endpoint constants
+/// Base URL is configured in ApiClient
 class ApiEndpoints {
   ApiEndpoints._();
 
-  // Auth
+  // ─── Auth ───────────────────────────────────────────────────────────────
   static const String login = '/auth/login';
   static const String register = '/auth/register';
-  static const String sendOtp = '/auth/send-otp';
   static const String verifyOtp = '/auth/verify-otp';
-  static const String resendOtp = '/auth/resend-otp';
-  static const String forgotPassword = '/auth/forgot-password';
-  static const String resetPassword = '/auth/reset-password';
+  static String sendOtp(String email) => '/auth/send-otp?email=$email';
+  static String resendOtp(String email) => '/auth/resend-otp?email=$email';
+  static const String forgotPassword = '/forgot-password';
+  static const String resetPassword = '/reset-password';
   static const String logout = '/auth/logout';
+  static const String firebaseVerify = '/auth/firebase-verify';
 
-  // Student
+  // ─── Student ─────────────────────────────────────────────────────────────
   static const String studentInfo = '/student/info';
   static const String studentProfile = '/student/profile';
   static const String updateProfile = '/student/profile/update';
-
-  // Home
-  static const String internships = '/internships';
-  static const String courses = '/courses';
-  static const String careerPaths = '/career-paths';
-  static const String continueLearning = '/student/continue-learning';
-
-  // Internship / Course detail
-  static String internshipDetail(String id) => '/internships/$id';
-  static String courseDetail(String id) => '/courses/$id';
-  static String careerPathDetail(String id) => '/career-paths/$id';
-
-  // Enroll
-  static const String enroll = '/enrollments';
-  static const String cart = '/cart';
-  static const String wishlist = '/wishlist';
-  static String addToWishlist(String id) => '/wishlist/$id';
-  static String removeFromWishlist(String id) => '/wishlist/$id';
-
-  // Checkout
-  static const String checkout = '/checkout';
-  static const String payment = '/payment';
-
-  // Learning
+  static const String profileImage = '/student/profile/image';
   static const String myLearning = '/student/my-learning';
-  static String courseProgress(String enrollmentId) => '/enrollments/$enrollmentId/progress';
-  static String moduleDetail(String courseId, String moduleId) =>
-      '/courses/$courseId/modules/$moduleId';
-  static String lessonDetail(String moduleId, String lessonId) =>
-      '/modules/$moduleId/lessons/$lessonId';
-  static String markLessonComplete(String lessonId) => '/lessons/$lessonId/complete';
-
-  // Quiz
-  static String moduleQuiz(String moduleId) => '/modules/$moduleId/quiz';
-  static String submitQuiz(String quizId) => '/quiz/$quizId/submit';
-  static String quizResult(String quizId) => '/quiz/$quizId/result';
-  static String reviewAnswers(String quizId) => '/quiz/$quizId/review';
-
-  // Notifications
-  static const String notifications = '/notifications';
-  static String markNotificationRead(String id) => '/notifications/$id/read';
-
-  // Profile
+  static const String continueLearning = '/student/continue-learning';
   static const String certificates = '/student/certificates';
-  static String certificateDetail(String id) => '/student/certificates/$id';
   static const String paymentHistory = '/student/payment-history';
+  static const String studentStats = '/student/stats';
   static const String downloads = '/student/downloads';
 
-  // Search
+  static String certificateDetail(dynamic id) => '/student/certificates/$id';
+
+  // ─── Courses & Internships ───────────────────────────────────────────────
+  static const String internships = '/internships';
+  static const String courses = '/courses';
   static const String search = '/search';
+
+  static String internshipDetail(dynamic id) => '/internships/$id';
+  static String courseDetail(dynamic id) => '/courses/$id';
+
+  // ─── Career Paths ────────────────────────────────────────────────────────
+  static const String careerPaths = '/career-paths';
+  static String careerPathDetail(dynamic id) => '/career-paths/$id';
+
+  // ─── Enrollments ────────────────────────────────────────────────────────
+  static const String enrollments = '/enrollments';
+  static String enrollmentProgress(dynamic id) => '/enrollments/$id/progress';
+
+  // ─── Modules & Lessons ──────────────────────────────────────────────────
+  static String moduleDetail(dynamic courseId, dynamic moduleId) =>
+      '/courses/$courseId/modules/$moduleId';
+  static String lessonDetail(dynamic moduleId, dynamic lessonId) =>
+      '/modules/$moduleId/lessons/$lessonId';
+  static String lessonComplete(dynamic lessonId) => '/lessons/$lessonId/complete';
+  static String lessonProgress(dynamic lessonId) => '/lessons/$lessonId/progress';
+
+  // ─── Quiz ────────────────────────────────────────────────────────────────
+  static String moduleQuiz(dynamic moduleId) => '/modules/$moduleId/quiz';
+  static String submitQuiz(dynamic quizId) => '/quiz/$quizId/submit';
+  static String quizResult(dynamic attemptId) => '/quiz/attempt/$attemptId/result';
+  static String reviewAnswers(dynamic attemptId) => '/quiz/attempt/$attemptId/review';
+
+  // ─── Cart ────────────────────────────────────────────────────────────────
+  static const String cart = '/cart';
+  static String removeFromCart(dynamic cartItemId) => '/cart/$cartItemId';
+
+  // ─── Wishlist ─────────────────────────────────────────────────────────────
+  static const String wishlist = '/wishlist';
+  static String addToWishlist(dynamic courseId) => '/wishlist/$courseId';
+  static String removeFromWishlist(dynamic courseId) => '/wishlist/$courseId';
+
+  // ─── Checkout & Payment ──────────────────────────────────────────────────
+  static const String checkout = '/checkout';
+  static const String paymentVerify = '/payment/verify';
+
+  // ─── Notifications ──────────────────────────────────────────────────────
+  static const String notifications = '/notifications';
+  static String markNotificationRead(dynamic id) => '/notifications/$id/read';
+  static const String markAllNotificationsRead = '/notifications/read-all';
 }

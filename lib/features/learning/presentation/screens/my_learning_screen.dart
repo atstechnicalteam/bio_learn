@@ -1,765 +1,470 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/network/student_service.dart';
+import '../../../../shared/models/api_models.dart';
 import '../../../quiz/presentation/screens/quiz_screen.dart';
 import '../learning_progress_store.dart';
 
-class MyLearningScreen extends StatelessWidget {
+class MyLearningScreen extends StatefulWidget {
   const MyLearningScreen({super.key});
+
+  @override
+  State<MyLearningScreen> createState() => _MyLearningScreenState();
+}
+
+class _MyLearningScreenState extends State<MyLearningScreen> {
+  final _studentService = StudentService();
+  List<EnrollmentModel> _enrollments = [];
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() { _loading = true; _error = null; });
+    final res = await _studentService.getMyLearning();
+    if (!mounted) return;
+    if (res.success) {
+      setState(() { _enrollments = res.data ?? []; _loading = false; });
+    } else {
+      setState(() { _error = res.message ?? 'Failed to load your courses'; _loading = false; });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        leading: Navigator.of(context).canPop() ? IconButton(
-                icon: const Icon(Icons.arrow_back_rounded),
-                onPressed: () => Navigator.of(context).pop(),
-              ) : null,
+        leading: Navigator.of(context).canPop()
+            ? IconButton(icon: const Icon(Icons.arrow_back_rounded), onPressed: () => Navigator.of(context).pop())
+            : null,
         title: const Text(AppStrings.myLearning),
+        actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: _load)],
       ),
-      body: const _MyLearningBody(),
-    );
-  }
-}
-
-class _MyLearningBody extends StatelessWidget {
-  const _MyLearningBody();
-
-  @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder<LearningProgressState>(
-      valueListenable: LearningProgressStore.instance.progress,
-      builder: (context, progress, _) {
-        final percent = (progress.progressValue * 100).round();
-        return SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                height: 200,
-                width: double.infinity,
-                child: Image.network(
-                  'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800',
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    color: AppColors.primary,
-                    child: const Center(
-                      child: Icon(
-                        Icons.biotech_outlined,
-                        color: Colors.white,
-                        size: 60,
-                      ),
-                    ),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(_error!, style: const TextStyle(color: AppColors.error)),
+                      const SizedBox(height: 12),
+                      ElevatedButton(onPressed: _load, child: const Text('Retry')),
+                    ],
                   ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(AppSizes.paddingMD),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      LearningProgressState.courseTitle,
-                      style: AppTextStyles.headingMD,
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: AppColors.background,
-                        borderRadius:
-                            BorderRadius.circular(AppSizes.radiusMD),
-                        border: Border.all(color: AppColors.border),
-                      ),
+                )
+              : _enrollments.isEmpty
+                  ? const Center(
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Course Progress',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              Text(
-                                '$percent%',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
-                            child: LinearProgressIndicator(
-                              value: progress.progressValue,
-                              backgroundColor: AppColors.progressBg,
-                              valueColor: const AlwaysStoppedAnimation(
-                                AppColors.primary,
-                              ),
-                              minHeight: 6,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            '${progress.completedLessonsCount} / ${LearningProgressState.totalLessons} Lessons Completed',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${progress.completedModulesCount} / ${LearningProgressState.totalModules} Modules Completed',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: progress.certificateUnlocked
-                                  ? AppColors.successLight
-                                  : AppColors.backgroundGrey,
-                              borderRadius: BorderRadius.circular(
-                                AppSizes.radiusMD,
-                              ),
-                            ),
-                            child: Text(
-                              progress.certificateUnlocked
-                                  ? 'All modules and lessons are completed. Your certificate is now unlocked.'
-                                  : 'Finish every module, complete all lessons, and pass each module quiz to unlock your certificate.',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: progress.certificateUnlocked
-                                    ? AppColors.success
-                                    : AppColors.textSecondary,
-                              ),
-                            ),
-                          ),
+                          Icon(Icons.school_outlined, size: 64, color: AppColors.textHint),
+                          SizedBox(height: 16),
+                          Text('No enrolled courses yet',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+                          SizedBox(height: 8),
+                          Text('Enroll in an internship or course\nto start learning.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 13, color: AppColors.textHint)),
                         ],
                       ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: _load,
+                      child: ListView.separated(
+                        padding: const EdgeInsets.all(AppSizes.paddingMD),
+                        itemCount: _enrollments.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 12),
+                        itemBuilder: (ctx, i) => _EnrollmentCard(
+                          enrollment: _enrollments[i],
+                          studentService: _studentService,
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 20),
-                    Text('Course Modules', style: AppTextStyles.headingSM),
-                    const SizedBox(height: 12),
-                    ...LearningProgressState.modules.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final module = entry.value;
-                      final isUnlocked = progress.isModuleUnlocked(index);
-                      final isCompleted = progress.isModuleCompleted(index);
-                      final done = progress.completedLessonsInModule(index);
-                      final hasStarted =
-                          done > 0 || progress.isModuleQuizPassed(index);
-                      final subtitle = isUnlocked
-                          ? '$done / ${module.lessons.length} Lessons | 1 Quiz | ${module.estimatedTime}'
-                          : 'Complete previous module to unlock';
-                      final actionLabel = isCompleted
-                          ? 'Review Module'
-                          : hasStarted
-                              ? 'Continue Module'
-                              : 'Start Module';
-                      return _ModuleCard(
-                        title: module.title,
-                        subtitle: subtitle,
-                        isUnlocked: isUnlocked,
-                        isCompleted: isCompleted,
-                        actionLabel: actionLabel,
-                        onTap: isUnlocked
-                            ? () => Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        LessonScreen(moduleIndex: index),
-                                  ),
-                                )
-                            : null,
-                      );
-                    }),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }
 
-class _ModuleCard extends StatelessWidget {
-  const _ModuleCard({
-    required this.title,
-    required this.subtitle,
-    required this.isUnlocked,
-    required this.isCompleted,
-    required this.actionLabel,
-    this.onTap,
-  });
+// ── Enrollment card ─────────────────────────────────────────────────────────
 
-  final String title;
-  final String subtitle;
-  final bool isUnlocked;
-  final bool isCompleted;
-  final String actionLabel;
-  final VoidCallback? onTap;
+class _EnrollmentCard extends StatelessWidget {
+  const _EnrollmentCard({required this.enrollment, required this.studentService});
+  final EnrollmentModel enrollment;
+  final StudentService studentService;
 
   @override
   Widget build(BuildContext context) {
-    final color = isCompleted
-        ? AppColors.success
-        : isUnlocked
-            ? AppColors.primary
-            : AppColors.textSecondary;
-    final bg = isCompleted
-        ? AppColors.success.withValues(alpha: 0.1)
-        : isUnlocked
-            ? AppColors.primary.withValues(alpha: 0.08)
-            : AppColors.backgroundGrey;
+    final pct = (enrollment.progress * 100).round();
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(AppSizes.radiusMD),
         border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          // Header
+          Container(
+            height: 120,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(AppSizes.radiusMD)),
+            ),
+            child: const Center(
+              child: Icon(Icons.biotech_outlined, color: AppColors.primary, size: 48),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(enrollment.courseName,
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                const SizedBox(height: 10),
+                // Progress bar
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: isUnlocked
-                            ? AppColors.textPrimary
-                            : AppColors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        if (!isUnlocked)
-                          const Icon(
-                            Icons.lock_outline_rounded,
-                            size: 13,
-                            color: AppColors.textHint,
-                          ),
-                        if (!isUnlocked) const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(subtitle, style: AppTextStyles.bodySM),
-                        ),
-                      ],
-                    ),
+                    const Text('Progress', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                    Text('$pct%', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary)),
                   ],
                 ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: bg,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isUnlocked ? color : AppColors.border,
+                const SizedBox(height: 6),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: enrollment.progress,
+                    backgroundColor: AppColors.progressBg,
+                    valueColor: const AlwaysStoppedAnimation(AppColors.primary),
+                    minHeight: 6,
                   ),
                 ),
-                child: Text(
-                  isCompleted
-                      ? 'Completed'
-                      : isUnlocked
-                          ? 'Unlocked'
-                          : 'Locked',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: isUnlocked ? color : AppColors.textSecondary,
+                const SizedBox(height: 6),
+                Text('${enrollment.doneLessons} / ${enrollment.totalLessons} Lessons',
+                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                const SizedBox(height: 12),
+                // Module list (if available from enrollment)
+                if (enrollment.modules != null && enrollment.modules!.isNotEmpty)
+                  ..._buildModuleList(context, enrollment),
+                const SizedBox(height: 4),
+                // Open learning button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => _EnrollmentDetailScreen(
+                          enrollment: enrollment,
+                          studentService: studentService,
+                        ),
+                      ),
+                    ),
+                    child: Text(pct == 100 ? 'Review Course' : pct == 0 ? 'Start Learning' : 'Continue Learning'),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          if (isUnlocked) ...[
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              height: 40,
-              child: ElevatedButton(
-                onPressed: onTap,
-                child: Text(actionLabel),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _buildModuleList(BuildContext context, EnrollmentModel enrollment) {
+    return enrollment.modules!.take(3).map((m) {
+      final done = m.completedLessons ?? 0;
+      final total = m.lessonsCount ?? 0;
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Row(
+          children: [
+            Icon(
+              done == total && total > 0 ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+              size: 16,
+              color: done == total && total > 0 ? AppColors.success : AppColors.textHint,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(m.title,
+                  style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
+                  maxLines: 1, overflow: TextOverflow.ellipsis),
+            ),
+            Text('$done/$total', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+          ],
+        ),
+      );
+    }).toList();
+  }
+}
+
+// ── Enrollment detail screen (modules + lessons from API) ────────────────────
+
+class _EnrollmentDetailScreen extends StatefulWidget {
+  const _EnrollmentDetailScreen({required this.enrollment, required this.studentService});
+  final EnrollmentModel enrollment;
+  final StudentService studentService;
+
+  @override
+  State<_EnrollmentDetailScreen> createState() => _EnrollmentDetailScreenState();
+}
+
+class _EnrollmentDetailScreenState extends State<_EnrollmentDetailScreen> {
+  EnrollmentProgressModel? _progress;
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProgress();
+  }
+
+  Future<void> _loadProgress() async {
+    setState(() { _loading = true; _error = null; });
+    final res = await widget.studentService.getEnrollmentProgress(
+      int.tryParse(widget.enrollment.enrollmentId) ?? 0,
+    );
+    if (!mounted) return;
+    if (res.success && res.data != null) {
+      setState(() { _progress = res.data; _loading = false; });
+    } else {
+      setState(() { _error = res.message ?? 'Failed to load progress'; _loading = false; });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final enrollment = widget.enrollment;
+    final pct = (_progress?.progress ?? enrollment.progress) * 100;
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(title: Text(enrollment.courseName, overflow: TextOverflow.ellipsis)),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+              ? Center(child: Text(_error!, style: const TextStyle(color: AppColors.error)))
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(AppSizes.paddingMD),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Progress summary
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(AppSizes.radiusMD),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text('Course Progress', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                                Text('${pct.round()}%', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: LinearProgressIndicator(
+                                value: _progress?.progress ?? enrollment.progress,
+                                backgroundColor: AppColors.progressBg,
+                                valueColor: const AlwaysStoppedAnimation(AppColors.primary),
+                                minHeight: 6,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '${_progress?.doneLessons ?? enrollment.doneLessons} / ${_progress?.totalLessons ?? enrollment.totalLessons} Lessons Completed',
+                              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Text('Modules', style: AppTextStyles.headingSM),
+                      const SizedBox(height: 12),
+                      ...(_progress?.modules ?? enrollment.modules ?? []).asMap().entries.map((entry) {
+                        final idx = entry.key;
+                        final m = entry.value;
+                        final done = m.completedLessons ?? 0;
+                        final total = m.lessonsCount ?? 0;
+                        final completed = total > 0 && done >= total;
+                        return _ApiModuleCard(
+                          moduleIndex: idx,
+                          module: m,
+                          done: done,
+                          total: total,
+                          completed: completed,
+                          enrollmentId: int.tryParse(enrollment.enrollmentId) ?? 0,
+                          courseId: int.tryParse(enrollment.courseId) ?? 0,
+                          studentService: widget.studentService,
+                          onRefresh: _loadProgress,
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+    );
+  }
+}
+
+// ── Module card using real API lessons ───────────────────────────────────────
+
+class _ApiModuleCard extends StatefulWidget {
+  const _ApiModuleCard({
+    required this.moduleIndex,
+    required this.module,
+    required this.done,
+    required this.total,
+    required this.completed,
+    required this.enrollmentId,
+    required this.courseId,
+    required this.studentService,
+    required this.onRefresh,
+  });
+  final int moduleIndex;
+  final Module module;
+  final int done;
+  final int total;
+  final bool completed;
+  final int enrollmentId;
+  final int courseId;
+  final StudentService studentService;
+  final VoidCallback onRefresh;
+
+  @override
+  State<_ApiModuleCard> createState() => _ApiModuleCardState();
+}
+
+class _ApiModuleCardState extends State<_ApiModuleCard> {
+  bool _expanded = false;
+  ModuleDetailModel? _detail;
+  bool _loadingDetail = false;
+
+  Future<void> _loadDetail() async {
+    if (_detail != null) { setState(() => _expanded = !_expanded); return; }
+    setState(() => _loadingDetail = true);
+    final res = await widget.studentService.getModuleDetail(
+      widget.courseId, int.tryParse(widget.module.id) ?? 0,
+    );
+    if (!mounted) return;
+    setState(() {
+      _detail = res.data;
+      _expanded = true;
+      _loadingDetail = false;
+    });
+  }
+
+  Future<void> _markLessonDone(int lessonId) async {
+    await widget.studentService.markLessonComplete(lessonId, widget.enrollmentId);
+    widget.onRefresh();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppSizes.radiusMD),
+        border: Border.all(color: widget.completed ? AppColors.success : AppColors.border),
+      ),
+      child: Column(
+        children: [
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+            leading: CircleAvatar(
+              backgroundColor: widget.completed ? AppColors.success : AppColors.primary.withValues(alpha: 0.1),
+              child: Icon(
+                widget.completed ? Icons.check_rounded : Icons.book_outlined,
+                color: widget.completed ? Colors.white : AppColors.primary,
+                size: 18,
               ),
             ),
-          ],
+            title: Text(widget.module.title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+            subtitle: Text('${widget.done} / ${widget.total} Lessons', style: AppTextStyles.bodySM),
+            trailing: _loadingDetail
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                : Icon(_expanded ? Icons.expand_less : Icons.expand_more, color: AppColors.textSecondary),
+            onTap: _loadDetail,
+          ),
+          if (_expanded && _detail != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+              child: Column(
+                children: [
+                  ..._detail!.lessons.map((lesson) {
+                    return _LessonTile(
+                      lesson: lesson,
+                      enrollmentId: widget.enrollmentId,
+                      onMarkDone: () => _markLessonDone(int.tryParse(lesson.id) ?? 0),
+                    );
+                  }),
+                  const Divider(),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: CircleAvatar(
+                      backgroundColor: AppColors.backgroundGrey,
+                      child: const Icon(Icons.quiz_outlined, size: 18, color: AppColors.primary),
+                    ),
+                    title: Text(_detail!.quiz.title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                    subtitle: Text('${_detail!.quiz.totalQuestions} Questions | Pass ${_detail!.quiz.passingPercentage}%',
+                        style: AppTextStyles.bodySM),
+                    trailing: ElevatedButton(
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => QuizScreen(moduleIndex: widget.moduleIndex),
+                        ),
+                      ),
+                      child: const Text('Take Quiz', style: TextStyle(fontSize: 12)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );
   }
 }
 
-class LessonScreen extends StatefulWidget {
-  const LessonScreen({
-    super.key,
-    required this.moduleIndex,
-  });
-
-  final int moduleIndex;
-
-  @override
-  State<LessonScreen> createState() => _LessonScreenState();
-}
-
-class _LessonScreenState extends State<LessonScreen> {
-  final LearningProgressStore _progressStore = LearningProgressStore.instance;
-  int _currentLesson = 0;
-
-  LearningModuleDefinition get _module =>
-      LearningProgressState.modules[widget.moduleIndex];
-
-  @override
-  void initState() {
-    super.initState();
-    _currentLesson = _firstIncompleteLessonIndex(_progressStore.progress.value);
-  }
-
-  int _firstIncompleteLessonIndex(LearningProgressState progress) {
-    for (var index = 0; index < _module.lessons.length; index++) {
-      if (!progress.isLessonCompleted(widget.moduleIndex, index)) {
-        return index;
-      }
-    }
-    return _module.lessons.length - 1;
-  }
-
-  Future<void> _markComplete(int lessonIndex) async {
-    final progress = _progressStore.progress.value;
-    if (progress.isLessonCompleted(widget.moduleIndex, lessonIndex)) {
-      return;
-    }
-
-    await _progressStore.markLessonCompleted(
-      moduleIndex: widget.moduleIndex,
-      lessonIndex: lessonIndex,
-    );
-
-    if (!mounted) {
-      return;
-    }
-
-    setState(() {
-      _currentLesson = _firstIncompleteLessonIndex(_progressStore.progress.value);
-    });
-  }
+class _LessonTile extends StatelessWidget {
+  const _LessonTile({required this.lesson, required this.enrollmentId, required this.onMarkDone});
+  final Lesson lesson;
+  final int enrollmentId;
+  final VoidCallback onMarkDone;
 
   @override
   Widget build(BuildContext context) {
-    final isLastModule =
-        widget.moduleIndex == LearningProgressState.totalModules - 1;
-
-    return ValueListenableBuilder<LearningProgressState>(
-      valueListenable: _progressStore.progress,
-      builder: (context, progress, _) {
-        final quizPassed = progress.isModuleQuizPassed(widget.moduleIndex);
-        final allLessonsDone =
-            progress.allLessonsCompletedInModule(widget.moduleIndex);
-        final completedCount =
-            progress.completedLessonsInModule(widget.moduleIndex);
-        final lesson = _module.lessons[_currentLesson];
-
-        return Scaffold(
-          backgroundColor: AppColors.background,
-          appBar: AppBar(
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_rounded),
-              onPressed: () => Navigator.of(context).pop(),
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(vertical: 2),
+      leading: Icon(
+        lesson.isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+        color: lesson.isCompleted ? AppColors.success : AppColors.textHint,
+        size: 20,
+      ),
+      title: Text(lesson.title, style: const TextStyle(fontSize: 13)),
+      subtitle: Text('${lesson.durationSeconds ~/ 60} min', style: AppTextStyles.bodySM),
+      trailing: lesson.isCompleted
+          ? null
+          : TextButton(
+              onPressed: onMarkDone,
+              child: const Text('Mark Done', style: TextStyle(fontSize: 11)),
             ),
-            title: const Text(LearningProgressState.courseTitle),
-          ),
-          body: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                GestureDetector(
-                  onTap: () => _markComplete(_currentLesson),
-                  child: Container(
-                    height: 220,
-                    width: double.infinity,
-                    color: Colors.black87,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Image.network(
-                          'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800',
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const SizedBox.shrink(),
-                        ),
-                        Container(
-                          width: 56,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.9),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.play_arrow_rounded,
-                            color: Colors.white,
-                            size: 32,
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 10,
-                          left: 12,
-                          child: Text(
-                            lesson.duration,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                        const Positioned(
-                          bottom: 10,
-                          right: 12,
-                          child: Row(
-                            children: [
-                              Text(
-                                'HD',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                ),
-                              ),
-                              SizedBox(width: 8),
-                              Icon(
-                                Icons.fullscreen_rounded,
-                                color: Colors.white,
-                                size: 18,
-                              ),
-                            ],
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 28,
-                          left: 0,
-                          right: 0,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(2),
-                              child: const LinearProgressIndicator(
-                                value: 0.4,
-                                backgroundColor: Colors.white30,
-                                valueColor: AlwaysStoppedAnimation(
-                                  AppColors.accent,
-                                ),
-                                minHeight: 3,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(AppSizes.paddingMD),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          'Module ${widget.moduleIndex + 1}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(lesson.title, style: AppTextStyles.headingMD),
-                      const SizedBox(height: 6),
-                      Text(
-                        _module.description,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Lessons in Module ${widget.moduleIndex + 1}',
-                            style: AppTextStyles.headingSM,
-                          ),
-                          Text(
-                            '$completedCount / ${_module.lessons.length} Completed',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      ..._module.lessons.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final item = entry.value;
-                        final isCompleted =
-                            progress.isLessonCompleted(widget.moduleIndex, index);
-                        final isCurrent = index == _currentLesson;
-
-                        return GestureDetector(
-                          onTap: () => setState(() => _currentLesson = index),
-                          child: Container(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isCurrent
-                                  ? AppColors.cardBackground
-                                  : AppColors.background,
-                              borderRadius: BorderRadius.circular(
-                                AppSizes.radiusMD,
-                              ),
-                              border: Border.all(
-                                color: isCurrent
-                                    ? AppColors.primary
-                                    : AppColors.border,
-                                width: isCurrent ? 1.5 : 1,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 36,
-                                  height: 36,
-                                  decoration: BoxDecoration(
-                                    color: isCompleted
-                                        ? AppColors.success
-                                        : isCurrent
-                                            ? AppColors.primary
-                                            : AppColors.backgroundGrey,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    isCompleted
-                                        ? Icons.check_rounded
-                                        : isCurrent
-                                            ? Icons.play_arrow_rounded
-                                            : Icons.radio_button_unchecked_rounded,
-                                    color: isCompleted || isCurrent
-                                        ? Colors.white
-                                        : AppColors.textHint,
-                                    size: 18,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        item.title,
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w500,
-                                          color: isCurrent
-                                              ? AppColors.primary
-                                              : AppColors.textPrimary,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Video | ${item.duration}${isCurrent ? ' | Playing' : ''}',
-                                        style: AppTextStyles.bodySM,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  width: 30,
-                                  height: 30,
-                                  decoration: const BoxDecoration(
-                                    color: AppColors.primary,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.download_outlined,
-                                    color: Colors.white,
-                                    size: 16,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }),
-                      Container(
-                        margin: const EdgeInsets.only(top: 8, bottom: 8),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: progress.certificateUnlocked
-                              ? AppColors.successLight
-                              : quizPassed
-                                  ? AppColors.cardBackground
-                                  : AppColors.backgroundGrey,
-                          borderRadius:
-                              BorderRadius.circular(AppSizes.radiusMD),
-                        ),
-                        child: Text(
-                          progress.certificateUnlocked
-                              ? 'All modules and lessons are completed. Your certificate is ready in the certificate screen.'
-                              : quizPassed
-                                  ? 'This module is completed. Continue with the next module to keep progressing toward your certificate.'
-                                  : allLessonsDone
-                                      ? 'All lessons are complete. Pass the module quiz to finish this module.'
-                                      : 'Finish every lesson in this module to unlock the quiz and certificate progress.',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: progress.certificateUnlocked
-                                ? AppColors.success
-                                : quizPassed
-                                    ? AppColors.primary
-                                    : AppColors.textSecondary,
-                          ),
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: allLessonsDone
-                            ? () => Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => QuizScreen(
-                                      moduleIndex: widget.moduleIndex,
-                                      isLastModule: isLastModule,
-                                    ),
-                                  ),
-                                )
-                            : null,
-                        child: Container(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: allLessonsDone
-                                ? quizPassed
-                                    ? AppColors.successLight
-                                    : AppColors.cardBackground
-                                : AppColors.background,
-                            borderRadius:
-                                BorderRadius.circular(AppSizes.radiusMD),
-                            border: Border.all(
-                              color: allLessonsDone
-                                  ? quizPassed
-                                      ? AppColors.success
-                                      : AppColors.primary
-                                  : AppColors.border,
-                              width: allLessonsDone ? 1.5 : 1,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 36,
-                                height: 36,
-                                decoration: BoxDecoration(
-                                  color: quizPassed
-                                      ? AppColors.success
-                                      : allLessonsDone
-                                          ? AppColors.primary
-                                          : AppColors.backgroundGrey,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  quizPassed
-                                      ? Icons.check_rounded
-                                      : allLessonsDone
-                                          ? Icons.play_arrow_rounded
-                                          : Icons.lock_outline_rounded,
-                                  color: allLessonsDone
-                                      ? Colors.white
-                                      : AppColors.textHint,
-                                  size: 18,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Module ${widget.moduleIndex + 1} Final Quiz',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w700,
-                                        color: allLessonsDone
-                                            ? quizPassed
-                                                ? AppColors.success
-                                                : AppColors.primary
-                                            : AppColors.textSecondary,
-                                      ),
-                                    ),
-                                    Text(
-                                      quizPassed
-                                          ? 'Quiz passed | Module completed'
-                                          : '10 Questions | Needs all lessons',
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        color: AppColors.textSecondary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 }
